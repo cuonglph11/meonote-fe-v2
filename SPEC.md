@@ -154,3 +154,97 @@ Tap Record → Mic permission?
 - Record Detail: 18 cases
 - Settings: 7 cases
 - Edge Cases: 24 cases
+
+## Complete Test Cases
+
+### 1. Onboarding (6 cases)
+| Feature | Test Case |
+|---------|-----------|
+| Language selection | Verify select language → UI updates immediately (live preview) |
+| Theme selection | Verify select light/dark theme works |
+| Consent | Verify uncheck consent → Get Started button disabled |
+| Get Started | Verify click Get Started → save prefs → navigate to /home |
+| Redirect | Verify first-time user → auto redirect to /onboarding |
+| Redirect | Verify returning user → auto redirect to /home (skip onboarding) |
+
+### 2. Homepage (17 cases)
+| Feature | Test Case |
+|---------|-----------|
+| Delete record | Verify click delete record → remove record successful |
+| Retry | Verify when load data errored → user can retry successful |
+| Search | Verify search by title returns correct results |
+| Search | Verify search by summary content returns correct results |
+| Search | Verify search shows no results state when nothing found |
+| Pull-to-refresh | Verify pull-to-refresh loads latest notes |
+| Pull-to-refresh | Verify pull-to-refresh disabled during recording |
+| Rename record | Verify inline rename title works |
+| Rename record | Verify rename with empty title → cancel edit |
+| Share | Verify share meeting (native share or copy link fallback) |
+| Retry upload | Verify retry upload when upload failed → success |
+| Empty state | Verify empty state shows correct image + hint when no notes |
+| Offline | Verify offline banner shows when network lost |
+| Grouping | Verify notes grouped correctly (Today, Yesterday, Older) |
+| Pending state | Verify pending meeting displays while uploading |
+| Navigation | Verify tap on note → navigate to detail page |
+| Navigation | Verify tap on failed upload note → retry instead of navigate |
+
+### 3. Record Detail (18 cases)
+| Feature | Sub Feature | Test Case |
+|---------|-------------|-----------|
+| Audio Playback | Play | Verify play button loads audio and starts playback |
+| Audio Playback | Pause | Verify pause button stops playback |
+| Audio Playback | End | Verify play to end → resets to beginning |
+| Audio Playback | Re-listen | Verify can re-listen recording from detail page |
+| Audio Playback | Seek | ⚠️ NOT IMPLEMENTED: Seek/scrub audio (tua tới, tua lui) |
+| Progress Bar | | Verify progress bar updates in real-time while playing |
+| Audio Error | Corrupted | Verify error shown when audio file corrupted (duration=0) |
+| Audio Error | Missing | Verify error shown when no audio file available |
+| Summary | View | Verify summary tab displays correctly |
+| Summary | Edit | Verify edit summarized content + save via API |
+| Transcription | View | Verify transcription tab displays correctly |
+| Tab Switch | | Verify switch between Summary ↔ Transcription tabs |
+| Edit Title | | Verify inline edit title from detail page + save |
+| Delete | | Verify delete note from detail → navigate back to home |
+| Retry Upload | Banner | Verify retry banner shows when summarizedContent is empty |
+| Retry Upload | Success | Verify retry upload success → updates meeting data |
+| Scroll to Top | | Verify scroll-to-top button appears after scrolling down |
+| New Recording | | Verify can start new recording from detail page |
+
+### 4. Settings (7 cases)
+| Feature | Test Case |
+|---------|-----------|
+| Terms/Privacy | Verify view terms of service / privacy policy opens correctly |
+| Languages | Verify change language successful |
+| Light/Dark mode | Verify change UI mode successful (light/dark/system) |
+| User ID | Verify anonymous token displayed (truncated format) |
+| Version | Verify app version displayed correctly |
+| Clear All Data | Verify clear data → confirm → reset app (clear token, notes, prefs) → reload |
+| Clear All Data | Verify cancel clear data → nothing happens |
+
+### 5. Edge Cases (24 cases)
+| Scenario | Test Case |
+|----------|-----------|
+| Delete while recording | Verify delete record while recording → cancel process successful |
+| Record with internet | Verify start recording when internet available |
+| Record without internet | Verify start recording when no internet |
+| Lose internet during recording | Verify recording continues when internet lost mid-recording |
+| Exit app while recording | Verify recording continues in background when app exits |
+| Kill app while recording | Verify force kill app → cleanup orphaned recording on next launch |
+| Incoming call during recording | Verify incoming call → recording paused → warning banner shown |
+| Stop from notification | Verify stop recording from outside popup (Live Activity) |
+| Low storage | Verify behavior when storage nearly full during recording |
+| Power off during recording | Verify behavior when device powered off during recording |
+| Switch WiFi ↔ 4G | Verify recording continues when switching WiFi to 4G and vice versa |
+| Switch app during playback | Verify behavior when switching to another app during audio playback |
+| Call during playback | Verify behavior when receiving call during audio playback |
+| Recording < 10s | Verify stop recording under 10 seconds → alert too short, do not stop |
+| Permission denied | Verify mic permission denied → alert with Open Settings option |
+| Upload failed | Verify upload fail → create local note → show retry banner |
+| Init note API fail | Verify init note API fail → show error toast, do not start recording |
+| Force kill recovery | Verify app crash → relaunch → cleanup orphaned recording + delete server note |
+| Wake lock (web) | Verify screen stays on during recording on web platform |
+| Cancel during upload | Verify cancel recording while uploading → delete pending + delete server note |
+| Resume after interrupt | Verify recording interrupted → resume → continue recording normally |
+| Deep link from Live Activity | Verify tap Live Activity → opens app (does NOT auto-stop recording) |
+| Corrupted audio | Verify corrupted audio file (duration=0) → show error, disable play |
+| Pause/Resume recording | Verify user-initiated pause → resume recording works correctly |
