@@ -4,14 +4,56 @@
 MeoNote is a voice-note recording app. Users record audio meetings/notes, which get transcribed and summarized by AI. This is the **frontend** (React/Next.js PWA) that works on both web and mobile (via Capacitor/WebView).
 
 ## Tech Stack
-- **Framework:** Next.js 15 (App Router)
-- **Language:** TypeScript (strict mode)
-- **Styling:** Tailwind CSS v4
+- **Build:** Vite + @vitejs/plugin-react
+- **UI Framework:** React 19 + Ionic React 8 (@ionic/react, @ionic/react-router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4 (@tailwindcss/vite)
+- **Routing:** react-router-dom v5
 - **State Management:** React Context + localStorage cache
-- **i18n:** next-intl (English + Vietnamese)
+- **i18n:** i18next + react-i18next (English + Vietnamese)
+- **Icons:** lucide-react
 - **Audio:** Web Audio API / MediaRecorder
-- **PWA:** next-pwa
-- **Testing:** Vitest + React Testing Library
+- **Testing:** Jest
+
+## Project Structure (follow this exactly)
+```
+src/
+  main.tsx              — Entry point
+  index.css             — Global styles (Tailwind imports)
+  app/
+    App.tsx             — Root component
+    AppProviders.tsx    — Context providers wrapper
+    router/
+      index.tsx         — Route definitions
+  pages/
+    OnboardingPage/
+    HomePage/
+    MeetingDetailPage/
+  features/
+    settings/
+      hooks/
+      services/
+      types/
+    recording/
+      hooks/
+      services/
+      types/
+    notes/
+      hooks/
+      services/
+      types/
+  shared/
+    lib/
+      i18n/
+        config.ts
+        locales/en.json
+        locales/vi.json
+      api/
+        client.ts
+    components/
+    hooks/
+    types/
+```
 
 ## Pages & Routes
 
