@@ -47,18 +47,42 @@ export const RecordingUI: React.FC = () => {
           {/* Status */}
           <div className="flex flex-col items-center gap-2">
             <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center ${
+              className={`w-16 h-16 rounded-full flex items-center justify-center relative ${
                 state.status === 'paused'
                   ? 'bg-yellow-100 dark:bg-yellow-900/30'
-                  : 'bg-red-100 dark:bg-red-900/30 animate-pulse'
+                  : 'bg-red-100 dark:bg-red-900/30'
               }`}
             >
+              {/* Audio level ring */}
+              {state.status === 'recording' && (
+                <div
+                  className="absolute inset-0 rounded-full border-4 border-red-400 dark:border-red-500"
+                  style={{
+                    transform: `scale(${1 + state.audioLevel * 0.5})`,
+                    opacity: 0.3 + state.audioLevel * 0.7,
+                    transition: 'transform 0.15s ease-out, opacity 0.15s ease-out',
+                  }}
+                />
+              )}
               <Mic
                 size={32}
                 className={state.status === 'paused' ? 'text-yellow-500' : 'text-red-500'}
                 aria-hidden="true"
               />
             </div>
+
+            {/* Audio level bar */}
+            {(state.status === 'recording' || state.status === 'paused') && (
+              <div className="w-48 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden" data-testid="audio-level-bar">
+                <div
+                  className="h-full bg-red-500 rounded-full"
+                  style={{
+                    width: `${Math.min(state.audioLevel * 100 * 3, 100)}%`,
+                    transition: 'width 0.15s ease-out',
+                  }}
+                />
+              </div>
+            )}
 
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
               {isUploading
@@ -75,6 +99,16 @@ export const RecordingUI: React.FC = () => {
               {formatDuration(state.duration)}
             </p>
           </div>
+
+          {/* No audio warning */}
+          {state.showNoAudioWarning && (
+            <div
+              className="w-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm rounded-lg p-3 text-center"
+              data-testid="no-audio-warning"
+            >
+              {t('recording.noAudioDetected')}
+            </div>
+          )}
 
           {/* Phone call warning */}
           {state.showPhoneCallWarning && (

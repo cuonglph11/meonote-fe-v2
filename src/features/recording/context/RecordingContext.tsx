@@ -21,8 +21,10 @@ const initialState: RecordingState = {
   status: 'idle',
   duration: 0,
   noteId: null,
+  audioLevel: 0,
   showPhoneCallWarning: false,
   showLowStorageWarning: false,
+  showNoAudioWarning: false,
 };
 
 export const RecordingContext = createContext<RecordingContextValue | null>(null);
@@ -33,6 +35,10 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const levelIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const silentSecondsRef = useRef(0);
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock();
   const { addPendingNote, removePendingNote, updatePendingNote, addNote } = useNotes();
 
@@ -71,6 +77,78 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setState((prev) => ({ ...prev, status }));
   }, []);
 
+  const stopAudioLevelMonitor = useCallback(() => {
+    if (levelIntervalRef.current) {
+      clearInterval(levelIntervalRef.current);
+      levelIntervalRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    silentSecondsRef.current = 0;
+  }, []);
+
+  const startAudioLevelMonitor = useCallback(async (stream: MediaStream) => {
+    try {
+      const audioContext = new AudioContext();
+
+      // AudioContext may start suspended due to autoplay policy — resume it
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      silentSecondsRef.current = 0;
+
+      // Use time-domain data for more reliable audio detection
+      const dataArray = new Uint8Array(analyser.fftSize);
+
+      levelIntervalRef.current = setInterval(() => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getByteTimeDomainData(dataArray);
+
+        // Time-domain values center at 128; deviation = audio present
+        let maxDeviation = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const deviation = Math.abs(dataArray[i] - 128);
+          if (deviation > maxDeviation) maxDeviation = deviation;
+        }
+        const avg = maxDeviation / 128; // 0-1
+
+        setState((prev) => {
+          const newState = { ...prev, audioLevel: avg };
+
+          // Track consecutive silent intervals (checked every 200ms)
+          if (avg < 0.01) {
+            silentSecondsRef.current += 0.2;
+          } else {
+            silentSecondsRef.current = 0;
+            if (prev.showNoAudioWarning) {
+              newState.showNoAudioWarning = false;
+            }
+          }
+
+          // Warn after 5 seconds of silence
+          if (silentSecondsRef.current >= 5 && !prev.showNoAudioWarning) {
+            newState.showNoAudioWarning = true;
+          }
+
+          return newState;
+        });
+      }, 200);
+    } catch {
+      // Web Audio API not available — skip monitoring
+    }
+  }, []);
+
   const startRecording = useCallback(async () => {
     updateStatus('requesting');
 
@@ -82,6 +160,14 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (err instanceof Error && err.name === 'NotAllowedError') {
         return 'permission_denied';
       }
+      return 'init_failed';
+    }
+
+    // Verify audio track is functional
+    const audioTrack = stream.getAudioTracks()[0];
+    if (!audioTrack || audioTrack.muted || !audioTrack.enabled) {
+      stream.getTracks().forEach((t) => t.stop());
+      updateStatus('idle');
       return 'init_failed';
     }
 
@@ -113,12 +199,17 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     mediaRecorder.start(1000); // collect data every second
 
+    // Start audio level monitoring for visual feedback
+    startAudioLevelMonitor(stream);
+
     setState({
       status: 'recording',
       duration: 0,
       noteId: note.id,
+      audioLevel: 0,
       showPhoneCallWarning: false,
       showLowStorageWarning: false,
+      showNoAudioWarning: false,
     });
 
     addPendingNote({
@@ -133,7 +224,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     acquireWakeLock();
 
     return 'started';
-  }, [updateStatus, startTimer, acquireWakeLock, addPendingNote]);
+  }, [updateStatus, startTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor]);
 
   const stopRecording = useCallback(async () => {
     const { status, duration, noteId } = state;
@@ -146,6 +237,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     updateStatus('stopping');
     stopTimer();
+    stopAudioLevelMonitor();
 
     return new Promise<void>((resolve) => {
       const mr = mediaRecorderRef.current;
@@ -190,7 +282,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       mr.stop();
     });
-  }, [state, updateStatus, stopTimer, releaseWakeLock, removePendingNote, updatePendingNote, addNote]);
+  }, [state, updateStatus, stopTimer, stopAudioLevelMonitor, releaseWakeLock, removePendingNote, updatePendingNote, addNote]);
 
   const pauseRecording = useCallback(() => {
     const mr = mediaRecorderRef.current;
@@ -213,6 +305,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const mr = mediaRecorderRef.current;
 
     stopTimer();
+    stopAudioLevelMonitor();
 
     if (mr && mr.state !== 'inactive') {
       mr.onstop = null;
@@ -229,7 +322,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     setState(initialState);
-  }, [state, stopTimer, releaseWakeLock, removePendingNote]);
+  }, [state, stopTimer, stopAudioLevelMonitor, releaseWakeLock, removePendingNote]);
 
   const dismissPhoneCallWarning = useCallback(() => {
     setState((prev) => ({ ...prev, showPhoneCallWarning: false }));

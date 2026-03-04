@@ -64,7 +64,8 @@
     "resumeRecording": "Tiếp tục",
     "phoneCallWarning": "Ghi âm tạm dừng do có cuộc gọi đến",
     "backgroundContinue": "Ghi âm tiếp tục trong nền",
-    "lowStorage": "Cảnh báo dung lượng thấp — ghi âm có thể dừng sớm"
+    "lowStorage": "Cảnh báo dung lượng thấp — ghi âm có thể dừng sớm",
+    "noAudioDetected": "Không phát hiện âm thanh — kiểm tra micro trong cài đặt hệ thống"
   },
   "detail": {
     "summary": "Tóm tắt",

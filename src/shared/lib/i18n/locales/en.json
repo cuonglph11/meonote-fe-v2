@@ -64,7 +64,8 @@
     "resumeRecording": "Resume",
     "phoneCallWarning": "Recording paused due to incoming call",
     "backgroundContinue": "Recording continues in the background",
-    "lowStorage": "Low storage warning — recording may stop soon"
+    "lowStorage": "Low storage warning — recording may stop soon",
+    "noAudioDetected": "No audio detected — check your microphone input in system settings"
   },
   "detail": {
     "summary": "Summary",

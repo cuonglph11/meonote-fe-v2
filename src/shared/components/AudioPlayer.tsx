@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { IonButton, IonIcon, IonProgressBar } from '@ionic/react';
 import { useTranslation } from 'react-i18next';
 import { formatDuration } from '@/features/notes/services/notesService';
+import { getUserToken } from '@/shared/lib/api/client';
 
 interface AudioPlayerProps {
   audioUrl: string | undefined;
@@ -16,11 +17,51 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, duration, is
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration);
   const [hasError, setHasError] = useState(false);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const isDisabled = !audioUrl || isCorrupted || hasError;
+  const isDisabled = !audioUrl || isCorrupted || hasError || loading;
 
+  // Fetch audio with auth header and create blob URL
   useEffect(() => {
     if (!audioUrl) return;
+    let revoked = false;
+
+    setLoading(true);
+    setHasError(false);
+
+    const token = getUserToken();
+    fetch(audioUrl, { headers: { 'anonymous-token': token } })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (revoked) return;
+        const url = URL.createObjectURL(blob);
+        setBlobUrl(url);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (revoked) return;
+        setHasError(true);
+        setLoading(false);
+      });
+
+    return () => {
+      revoked = true;
+    };
+  }, [audioUrl]);
+
+  // Revoke previous blob URL when a new one is created or on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [blobUrl]);
+
+  useEffect(() => {
+    if (!blobUrl) return;
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -56,7 +97,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, duration, is
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [audioUrl, isCorrupted]);
+  }, [blobUrl, isCorrupted]);
 
   const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
@@ -101,8 +142,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, duration, is
 
   return (
     <div className="audio-player flex flex-col gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg" data-testid="audio-player">
-      {audioUrl && (
-        <audio ref={audioRef} src={audioUrl} preload="metadata" data-testid="audio-element" />
+      {blobUrl && (
+        <audio ref={audioRef} src={blobUrl} preload="metadata" data-testid="audio-element" />
       )}
 
       <div className="flex items-center gap-3">
