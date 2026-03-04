@@ -1,4 +1,5 @@
-import React, { createContext, useState, useCallback, useRef } from 'react';
+import { createContext, useState, useCallback, useRef } from 'react';
+import type { FC, ReactNode } from 'react';
 import type { Note, PendingNote } from '../types';
 import { api } from '@/shared/lib/api/client';
 import { notesCache } from '../services/notesService';
@@ -16,11 +17,12 @@ interface NotesContextValue {
   updatePendingNote: (id: string, data: Partial<PendingNote>) => void;
   removePendingNote: (id: string) => void;
   retryNoteLoad: () => void;
+  dismissError: () => void;
 }
 
 export const NotesContext = createContext<NotesContextValue | null>(null);
 
-export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NotesProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [notes, setNotes] = useState<Note[]>(() => notesCache.get());
   const [pendingNotes, setPendingNotes] = useState<PendingNote[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,6 +90,10 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchNotes();
   }, [fetchNotes]);
 
+  const dismissError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return (
     <NotesContext.Provider
       value={{
@@ -103,6 +109,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updatePendingNote,
         removePendingNote,
         retryNoteLoad,
+        dismissError,
       }}
     >
       {children}

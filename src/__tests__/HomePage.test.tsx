@@ -41,7 +41,7 @@ jest.mock('@/shared/lib/api/client', () => ({
     notes: {
       delete: jest.fn().mockResolvedValue(undefined),
       update: jest.fn().mockResolvedValue({ id: 'note-1', title: 'Renamed' }),
-      retry: jest.fn().mockResolvedValue({ id: 'note-1', status: 'pending' }),
+      get: jest.fn().mockResolvedValue({ id: 'note-1', status: 'pending', title: 'Test', duration: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }),
       list: jest.fn().mockResolvedValue([]),
     },
   },
@@ -305,9 +305,9 @@ describe('HomePage', () => {
   });
 
   /**
-   * TC-H11: Verify retry upload when upload failed → success
+   * TC-H11: Verify retry upload when upload failed → re-fetches note
    */
-  it('TC-H11: retry upload button calls api.notes.retry and updates note status', async () => {
+  it('TC-H11: retry upload button calls api.notes.get to re-fetch note', async () => {
     const note = createTodayNote({ id: 'note-1', status: 'failed' });
     setupMocks({ notes: [note] });
     renderHomePage();
@@ -317,8 +317,7 @@ describe('HomePage', () => {
       fireEvent.click(retryButton);
     });
 
-    expect(api.notes.retry).toHaveBeenCalledWith('note-1');
-    expect(mockUpdateNote).toHaveBeenCalledWith('note-1', { status: 'pending' });
+    expect(api.notes.get).toHaveBeenCalledWith('note-1');
   });
 
   /**
@@ -412,7 +411,7 @@ describe('HomePage', () => {
     fireEvent.click(clickTarget);
 
     await waitFor(() => {
-      expect(api.notes.retry).toHaveBeenCalledWith('note-1');
+      expect(api.notes.get).toHaveBeenCalledWith('note-1');
     });
     expect(mockPush).not.toHaveBeenCalledWith('/meeting/note-1');
   });

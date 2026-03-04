@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import {
   IonModal,
   IonHeader,
@@ -29,7 +30,7 @@ type LegalView = 'terms' | 'privacy' | null;
 const TERMS_URL = 'https://meonote-home.clen.dev/terms-of-service';
 const PRIVACY_URL = 'https://meonote-home.clen.dev/privacy-policy';
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const { settings, userToken, setTheme, setLanguage, clearAllData } = useSettings();
   const [showClearConfirm, setShowClearConfirm] = useState(false);

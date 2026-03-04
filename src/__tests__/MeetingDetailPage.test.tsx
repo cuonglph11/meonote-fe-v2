@@ -16,7 +16,7 @@
  * TC-D13: Verify title displays first line of summarizedContent
  * TC-D14: Verify delete note from detail → navigate back to home
  * TC-D15: Verify retry banner shows when summarizedContent is empty
- * TC-D16: Verify retry upload success → updates meeting data
+ * TC-D16: Verify retry banner click re-fetches note from API
  * TC-D17: Verify scroll-to-top button appears after scrolling down
  * TC-D18: Verify can start new recording from detail page
  */
@@ -34,10 +34,9 @@ jest.mock('@/features/recording/components/RecordingUI', () => ({
 jest.mock('@/shared/lib/api/client', () => ({
   api: {
     notes: {
-      get: jest.fn(),
+      get: jest.fn().mockResolvedValue({ id: 'note-1', title: 'Test', status: 'pending', summarizedContent: 'retried summary', duration: 120, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }),
       update: jest.fn().mockResolvedValue({}),
       delete: jest.fn().mockResolvedValue(undefined),
-      retry: jest.fn().mockResolvedValue({ id: 'note-1', status: 'pending', summarizedContent: 'retried summary' }),
     },
   },
 }));
@@ -380,9 +379,9 @@ describe('MeetingDetailPage', () => {
   });
 
   /**
-   * TC-D16: Verify retry upload success → updates meeting data
+   * TC-D16: Verify retry banner click re-fetches note from API
    */
-  it('TC-D16: retry banner click calls retry API and updates note', async () => {
+  it('TC-D16: retry banner click re-fetches note from API', async () => {
     setupMocks({ summarizedContent: undefined, status: 'ready' });
     renderDetailPage();
 
@@ -394,7 +393,7 @@ describe('MeetingDetailPage', () => {
       fireEvent.click(screen.getByTestId('retry-banner'));
     });
 
-    expect(api.notes.retry).toHaveBeenCalledWith('note-1');
+    expect(api.notes.get).toHaveBeenCalledWith('note-1');
   });
 
   /**

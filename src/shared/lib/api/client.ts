@@ -47,7 +47,11 @@ function mapNote(raw: LegacyNote): Note {
   };
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+const REQUEST_TIMEOUT_MS = 10_000;
+const MAX_RETRIES = 1;
+const RETRY_DELAY_MS = 1_000;
+
+async function request<T>(path: string, options: RequestInit = {}, retries = MAX_RETRIES): Promise<T> {
   const token = getUserToken();
 
   const headers: Record<string, string> = {
@@ -58,24 +62,38 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      ...headers,
-      ...(options.headers as Record<string, string>),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`API ${response.status}: ${response.statusText}`);
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        ...headers,
+        ...(options.headers as Record<string, string>),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API ${response.status}: ${response.statusText}`);
+    }
+
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return response.json() as Promise<T>;
+  } catch (err) {
+    if (retries > 0 && !(err instanceof DOMException && err.name === 'AbortError' && options.method === 'DELETE')) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      return request<T>(path, options, retries - 1);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
 }
 
 export const api = {

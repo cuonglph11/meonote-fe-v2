@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import type { FC } from 'react';
 import { IonButton, IonIcon, IonProgressBar } from '@ionic/react';
 import { useTranslation } from 'react-i18next';
 import { formatDuration } from '@/features/notes/services/notesService';
@@ -10,7 +11,7 @@ interface AudioPlayerProps {
   isCorrupted?: boolean;
 }
 
-export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrupted }) => {
+export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrupted }) => {
   const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);

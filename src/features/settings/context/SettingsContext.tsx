@@ -1,7 +1,9 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Theme, Language, AppSettings } from '../types';
 import { settingsService, applyTheme } from '../services/settingsService';
+import { getUserToken } from '@/shared/lib/api/client';
 
 interface SettingsContextValue {
   settings: AppSettings;
@@ -14,10 +16,10 @@ interface SettingsContextValue {
 
 export const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { i18n } = useTranslation();
   const [settings, setSettings] = useState<AppSettings>(() => settingsService.getSettings());
-  const [userToken] = useState<string>(() => settingsService.getUserToken());
+  const [userToken] = useState<string>(() => getUserToken());
 
   // Apply theme on mount and when system preference changes
   useEffect(() => {

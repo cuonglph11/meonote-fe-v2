@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import Markdown from 'react-markdown';
 
 interface MarkdownContentProps {
@@ -7,7 +7,7 @@ interface MarkdownContentProps {
   'data-testid'?: string;
 }
 
-export const MarkdownContent: React.FC<MarkdownContentProps> = ({
+export const MarkdownContent: FC<MarkdownContentProps> = ({
   content,
   className = '',
   'data-testid': testId,

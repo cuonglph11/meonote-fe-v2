@@ -1,9 +1,9 @@
-import React from 'react';
+import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { WifiOff } from 'lucide-react';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
-export const OfflineBanner: React.FC = () => {
+export const OfflineBanner: FC = () => {
   const { t } = useTranslation();
   const isOnline = useOnlineStatus();
 

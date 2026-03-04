@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import {
   IonButton,
   IonIcon,
@@ -9,7 +10,7 @@ import { Mic, Pause, Play, Square, X } from 'lucide-react';
 import { useRecording } from '../hooks/useRecording';
 import { formatDuration } from '@/features/notes/services/notesService';
 
-export const RecordingUI: React.FC = () => {
+export const RecordingUI: FC = () => {
   const { t } = useTranslation();
   const { state, stopRecording, pauseRecording, resumeRecording, cancelRecording } =
     useRecording();

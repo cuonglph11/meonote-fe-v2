@@ -13,6 +13,12 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
+// Mock api client (uses import.meta.env)
+jest.mock('@/shared/lib/api/client', () => ({
+  api: { notes: { list: jest.fn(), create: jest.fn(), get: jest.fn(), update: jest.fn(), delete: jest.fn(), upload: jest.fn() } },
+  getUserToken: () => 'test-token',
+}));
+
 // Mock hooks
 jest.mock('@/features/settings/hooks/useSettings');
 jest.mock('@/features/notes/hooks/useNotes');

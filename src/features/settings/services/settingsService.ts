@@ -4,7 +4,6 @@ const KEYS = {
   THEME: 'meonote_theme',
   LANGUAGE: 'meonote_language',
   ONBOARDING_COMPLETED: 'meonote_onboarding_completed',
-  USER_TOKEN: 'meonote_user_token',
 };
 
 export const settingsService = {
@@ -27,15 +26,6 @@ export const settingsService = {
 
   completeOnboarding(): void {
     localStorage.setItem(KEYS.ONBOARDING_COMPLETED, 'true');
-  },
-
-  getUserToken(): string {
-    let token = localStorage.getItem(KEYS.USER_TOKEN);
-    if (!token) {
-      token = crypto.randomUUID();
-      localStorage.setItem(KEYS.USER_TOKEN, token);
-    }
-    return token;
   },
 
   clearAllData(): void {

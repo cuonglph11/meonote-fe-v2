@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import type { FC } from 'react';
 import {
   IonPage,
   IonHeader,
@@ -29,7 +30,7 @@ import type { Note } from '@/shared/types';
 
 type Tab = 'summary' | 'transcription';
 
-export const MeetingDetailPage: React.FC = () => {
+export const MeetingDetailPage: FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const history = useHistory();

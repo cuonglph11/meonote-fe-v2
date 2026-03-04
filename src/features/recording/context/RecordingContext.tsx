@@ -1,4 +1,5 @@
-import React, { createContext, useState, useRef, useCallback, useEffect } from 'react';
+import { createContext, useState, useRef, useCallback, useEffect } from 'react';
+import type { FC, ReactNode } from 'react';
 import type { RecordingState, RecordingStatus } from '../types';
 import type { Note } from '@/shared/types';
 import { api } from '@/shared/lib/api/client';
@@ -29,7 +30,7 @@ const initialState: RecordingState = {
 
 export const RecordingContext = createContext<RecordingContextValue | null>(null);
 
-export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<RecordingState>(initialState);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);

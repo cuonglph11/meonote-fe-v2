@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import type { FC } from 'react';
 import {
   IonPage,
   IonHeader,
@@ -35,7 +36,7 @@ import { groupNotesByDate, filterNotes, formatDuration } from '@/features/notes/
 import { api } from '@/shared/lib/api/client';
 import type { Note } from '@/shared/types';
 
-export const HomePage: React.FC = () => {
+export const HomePage: FC = () => {
   const { t } = useTranslation();
   const history = useHistory();
   const { notes, pendingNotes, loading, error, fetchNotes, removeNote, updateNote, retryNoteLoad } =
@@ -56,8 +57,7 @@ export const HomePage: React.FC = () => {
     fetchNotes();
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleRefresh = async (event: any) => {
+  const handleRefresh = async (event: CustomEvent) => {
     if (isActive) {
       event.detail.complete();
       return;

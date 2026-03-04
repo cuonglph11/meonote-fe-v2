@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { IonApp, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { AppProviders } from './AppProviders';
@@ -8,7 +8,7 @@ setupIonicReact({
   mode: 'md', // Use Material Design on all platforms for consistency
 });
 
-const App: React.FC = () => (
+const App: FC = () => (
   <IonApp>
     <AppProviders>
       <IonReactRouter>

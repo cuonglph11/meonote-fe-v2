@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import {
   IonPage,
   IonContent,
@@ -15,7 +16,7 @@ import { Globe, Moon } from 'lucide-react';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import type { Language, Theme } from '@/shared/types';
 
-export const OnboardingPage: React.FC = () => {
+export const OnboardingPage: FC = () => {
   const { t } = useTranslation();
   const history = useHistory();
   const { settings, setLanguage, setTheme, completeOnboarding } = useSettings();
