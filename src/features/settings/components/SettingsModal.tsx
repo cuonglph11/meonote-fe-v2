@@ -17,6 +17,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
+import { APP_VERSION } from '@/shared/lib/appVersion';
 import type { Theme, Language } from '../types';
 
 interface SettingsModalProps {
@@ -25,8 +26,6 @@ interface SettingsModalProps {
 }
 
 type LegalView = 'terms' | 'privacy' | null;
-
-const APP_VERSION = import.meta.env.VITE_APP_VERSION || '0.1.0';
 const TERMS_URL = 'https://meonote.app/terms';
 const PRIVACY_URL = 'https://meonote.app/privacy';
 

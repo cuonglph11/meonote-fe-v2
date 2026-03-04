@@ -1,16 +1,33 @@
 import '@testing-library/jest-dom';
 
 // Mock Ionic React
+jest.mock('@/shared/lib/appVersion', () => ({
+  APP_VERSION: '0.1.0',
+}));
+
 jest.mock('@ionic/react', () => {
   const React = require('react');
   const mockComponent = (tag: string) =>
     ({ children, ...props }: Record<string, unknown>) =>
       React.createElement(tag, props, children);
 
+  const SegmentContext = React.createContext<((e: { detail: { value: unknown } }) => void) | null>(null);
+
   return {
     setupIonicReact: jest.fn(),
     IonApp: mockComponent('div'),
-    IonContent: mockComponent('div'),
+    IonContent: function IonContentMock({ children, onIonScroll, scrollEvents, ...props }: Record<string, unknown>) {
+      const ref = React.useRef<HTMLDivElement>(null);
+      React.useEffect(() => {
+        const el = ref.current;
+        if (scrollEvents && onIonScroll && el) {
+          const handler = onIonScroll as EventListener;
+          el.addEventListener('ionScroll', handler);
+          return () => el.removeEventListener('ionScroll', handler);
+        }
+      }, [scrollEvents, onIonScroll]);
+      return React.createElement('div', { ...props, ref }, children);
+    },
     IonHeader: mockComponent('header'),
     IonToolbar: mockComponent('div'),
     IonTitle: mockComponent('h1'),
@@ -40,24 +57,30 @@ jest.mock('@ionic/react', () => {
       React.createElement('button', { onClick, ...props }, children),
     IonSegment: ({ value, onIonChange, children, ...props }: Record<string, unknown>) =>
       React.createElement(
-        'div',
+        SegmentContext.Provider,
+        { value: onIonChange },
+        React.createElement('div', { 'data-value': value, ...props }, children)
+      ),
+    IonSegmentButton: function IonSegmentButtonMock({ value, children, ...props }: Record<string, unknown>) {
+      const onChange = React.useContext(SegmentContext);
+      return React.createElement(
+        'button',
         {
           'data-value': value,
-          onChange: (e: React.ChangeEvent<HTMLSelectElement>) =>
-            typeof onIonChange === 'function' && onIonChange({ detail: { value: e.target.value } }),
+          onClick: () => typeof onChange === 'function' && onChange({ detail: { value } }),
           ...props,
         },
         children
-      ),
-    IonSegmentButton: ({ value, children, ...props }: Record<string, unknown>) =>
-      React.createElement('button', { 'data-value': value, ...props }, children),
+      );
+    },
     IonModal: ({ isOpen, children, ...props }: Record<string, unknown>) =>
       isOpen ? React.createElement('div', { role: 'dialog', ...props }, children) : null,
-    IonAlert: ({ isOpen, header, message, buttons }: Record<string, unknown>) =>
-      isOpen
+    IonAlert: (alertProps: Record<string, unknown>) => {
+      const { isOpen, header, message, buttons, 'data-testid': testId } = alertProps;
+      return isOpen
         ? React.createElement(
             'div',
-            { role: 'alertdialog', 'data-testid': 'ion-alert' },
+            { role: 'alertdialog', 'data-testid': testId || 'ion-alert' },
             React.createElement('h2', null, header),
             React.createElement('p', null, message),
             Array.isArray(buttons)
@@ -71,7 +94,8 @@ jest.mock('@ionic/react', () => {
                 })
               : null
           )
-        : null,
+        : null;
+    },
     IonToast: ({ isOpen, message }: Record<string, unknown>) =>
       isOpen ? React.createElement('div', { role: 'status', 'data-testid': 'ion-toast' }, message as string) : null,
     IonSpinner: () => React.createElement('div', { 'data-testid': 'ion-spinner' }),

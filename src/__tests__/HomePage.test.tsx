@@ -408,7 +408,8 @@ describe('HomePage', () => {
     renderHomePage();
 
     const noteItem = screen.getByTestId('note-item-note-1');
-    fireEvent.click(noteItem);
+    const clickTarget = noteItem.querySelector('li') || noteItem;
+    fireEvent.click(clickTarget);
 
     await waitFor(() => {
       expect(api.notes.retry).toHaveBeenCalledWith('note-1');

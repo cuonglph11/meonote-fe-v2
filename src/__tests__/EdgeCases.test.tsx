@@ -216,7 +216,7 @@ describe('Edge Cases', () => {
     window.dispatchEvent(offlineEvent);
 
     // Recording state should still be 'recording' — network loss doesn't stop recording
-    const { state } = (useRecording as jest.Mock).mock.results[0].value;
+    const { state } = (useRecording as jest.Mock)();
     expect(state.status).toBe('recording');
   });
 
@@ -238,7 +238,7 @@ describe('Edge Cases', () => {
     document.dispatchEvent(new Event('visibilitychange'));
 
     // Recording should still be active
-    const { state } = (useRecording as jest.Mock).mock.results[0].value;
+    const { state } = (useRecording as jest.Mock)();
     expect(state.status).toBe('recording');
   });
 
@@ -283,8 +283,8 @@ describe('Edge Cases', () => {
     jest.unmock('@/features/recording/components/RecordingUI');
     // The RecordingUI shows phone-call-warning when showPhoneCallWarning is true
     // This is tested via the RecordingUI component's own rendering logic
-    const state = (useRecording as jest.Mock).mock.results[0]?.value?.state;
-    expect(state?.showPhoneCallWarning).toBe(true);
+    const { state } = (useRecording as jest.Mock)();
+    expect(state.showPhoneCallWarning).toBe(true);
   });
 
   /**
@@ -323,8 +323,8 @@ describe('Edge Cases', () => {
       },
     });
 
-    const state = (useRecording as jest.Mock).mock.results[0]?.value?.state;
-    expect(state?.showLowStorageWarning).toBe(true);
+    const { state } = (useRecording as jest.Mock)();
+    expect(state.showLowStorageWarning).toBe(true);
   });
 
   /**
@@ -357,8 +357,8 @@ describe('Edge Cases', () => {
     // Simulate network change event (WiFi → 4G)
     window.dispatchEvent(new Event('online'));
 
-    // Recording should still be active
-    const { state } = (useRecording as jest.Mock).mock.results[0].value;
+    // Recording should still be active — verify by calling the mock directly
+    const { state } = (useRecording as jest.Mock)();
     expect(state.status).toBe('recording');
     expect(state.duration).toBe(45);
   });
@@ -591,17 +591,6 @@ describe('Edge Cases', () => {
     const pauseButton = screen.getByTestId('pause-resume-button');
     fireEvent.click(pauseButton);
     expect(mockPause).toHaveBeenCalled();
-
-    // Update mock state to paused
-    (useRecording as jest.Mock).mockReturnValueOnce({
-      state: { status: 'paused', duration: 30, noteId: 'note-resume', showPhoneCallWarning: false, showLowStorageWarning: false },
-      pauseRecording: mockPause,
-      resumeRecording: mockResume,
-      stopRecording: jest.fn(),
-      cancelRecording: jest.fn(),
-      dismissPhoneCallWarning: jest.fn(),
-      isActive: true,
-    });
   });
 
   /**
@@ -624,7 +613,7 @@ describe('Edge Cases', () => {
     document.dispatchEvent(new Event('visibilitychange'));
 
     // Recording should still be active — no auto-stop
-    const { state, isActive } = (useRecording as jest.Mock).mock.results[0].value;
+    const { state, isActive } = (useRecording as jest.Mock)();
     expect(state.status).toBe('recording');
     expect(isActive).toBe(true);
   });
@@ -649,19 +638,16 @@ describe('Edge Cases', () => {
     const mockPause = jest.fn();
     const mockResume = jest.fn();
 
-    jest.unmock('@/features/recording/components/RecordingUI');
-    const { RecordingUI: ActualUI } = jest.requireActual('@/features/recording/components/RecordingUI');
-
-    (useRecording as jest.Mock).mockReturnValue({
+    setupBasicMocks();
+    setupRecordingMock({
+      isActive: true,
       state: { status: 'recording', duration: 20, noteId: 'note-24', showPhoneCallWarning: false, showLowStorageWarning: false },
-      startRecording: jest.fn(),
-      stopRecording: jest.fn().mockResolvedValue(undefined),
       pauseRecording: mockPause,
       resumeRecording: mockResume,
-      cancelRecording: jest.fn().mockResolvedValue(undefined),
-      dismissPhoneCallWarning: jest.fn(),
-      isActive: true,
     });
+
+    jest.unmock('@/features/recording/components/RecordingUI');
+    const { RecordingUI: ActualUI } = jest.requireActual('@/features/recording/components/RecordingUI');
 
     render(<MemoryRouter><ActualUI /></MemoryRouter>);
 

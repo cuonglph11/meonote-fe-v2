@@ -147,9 +147,12 @@ describe('Settings', () => {
     const alert = await screen.findByTestId('clear-data-alert');
     expect(alert).toBeInTheDocument();
 
-    // Click confirm
-    const confirmBtn = screen.getByText('settings.clearData');
-    fireEvent.click(confirmBtn);
+    // Click confirm (there are two elements with this text: the button and the alert confirm)
+    const confirmBtns = screen.getAllByText('settings.clearData');
+    const alertConfirmBtn = confirmBtns.find(
+      (el) => el.closest('[role="alertdialog"]') !== null
+    )!;
+    fireEvent.click(alertConfirmBtn);
 
     expect(mockClearAllData).toHaveBeenCalled();
   });
