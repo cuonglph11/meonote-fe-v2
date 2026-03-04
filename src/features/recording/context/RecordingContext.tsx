@@ -9,7 +9,7 @@ import { useNotes } from '@/features/notes/hooks/useNotes';
 
 interface RecordingContextValue {
   state: RecordingState;
-  startRecording: () => Promise<'permission_denied' | 'init_failed' | 'started' | void>;
+  startRecording: () => Promise<'permission_denied' | 'init_failed' | 'offline' | 'started' | void>;
   stopRecording: () => Promise<void>;
   pauseRecording: () => void;
   resumeRecording: () => void;
@@ -40,6 +40,8 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
   const analyserRef = useRef<AnalyserNode | null>(null);
   const levelIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const silentSecondsRef = useRef(0);
+  const audioTrackRef = useRef<MediaStreamTrack | null>(null);
+  const storageCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock();
   const { addPendingNote, removePendingNote, updatePendingNote, addNote } = useNotes();
 
@@ -50,15 +52,6 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       api.notes.delete(orphaned).catch(() => {});
       recordingService.clearOrphanedRecording();
     }
-  }, []);
-
-  // Handle phone call interruption (audio focus loss)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      // App backgrounded — recording continues (MediaRecorder keeps recording)
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const startTimer = useCallback(() => {
@@ -150,7 +143,31 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, []);
 
+  const checkLowStorage = useCallback(async (): Promise<boolean> => {
+    if (!navigator.storage?.estimate) return false;
+    try {
+      const { quota, usage } = await navigator.storage.estimate();
+      if (!quota || !usage) return false;
+      const remaining = quota - usage;
+      return remaining < 50 * 1024 * 1024;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const stopStorageCheck = useCallback(() => {
+    if (storageCheckRef.current) {
+      clearInterval(storageCheckRef.current);
+      storageCheckRef.current = null;
+    }
+  }, []);
+
   const startRecording = useCallback(async () => {
+    // Check offline before doing anything
+    if (!navigator.onLine) {
+      return 'offline';
+    }
+
     updateStatus('requesting');
 
     let stream: MediaStream;
@@ -203,13 +220,40 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     // Start audio level monitoring for visual feedback
     startAudioLevelMonitor(stream);
 
+    // Phone call detection via track mute events
+    audioTrackRef.current = audioTrack;
+    audioTrack.addEventListener('mute', () => {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.pause();
+        stopTimer();
+        setState(prev => ({
+          ...prev,
+          status: 'paused',
+          showPhoneCallWarning: true,
+        }));
+      }
+    });
+    audioTrack.addEventListener('unmute', () => {
+      // Call ended — don't auto-resume, just dismiss warning
+      setState(prev => ({ ...prev, showPhoneCallWarning: false }));
+    });
+
+    // Low storage check
+    const isLow = await checkLowStorage();
+
+    // Start periodic storage check every 30s
+    storageCheckRef.current = setInterval(async () => {
+      const low = await checkLowStorage();
+      setState(prev => ({ ...prev, showLowStorageWarning: low }));
+    }, 30_000);
+
     setState({
       status: 'recording',
       duration: 0,
       noteId: note.id,
       audioLevel: 0,
       showPhoneCallWarning: false,
-      showLowStorageWarning: false,
+      showLowStorageWarning: isLow,
       showNoAudioWarning: false,
     });
 
@@ -225,7 +269,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     acquireWakeLock();
 
     return 'started';
-  }, [updateStatus, startTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor]);
+  }, [updateStatus, startTimer, stopTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor, checkLowStorage]);
 
   const stopRecording = useCallback(async () => {
     const { status, duration, noteId } = state;
@@ -239,6 +283,8 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     updateStatus('stopping');
     stopTimer();
     stopAudioLevelMonitor();
+    stopStorageCheck();
+    audioTrackRef.current = null;
 
     return new Promise<void>((resolve) => {
       const mr = mediaRecorderRef.current;
@@ -307,6 +353,8 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
     stopTimer();
     stopAudioLevelMonitor();
+    stopStorageCheck();
+    audioTrackRef.current = null;
 
     if (mr && mr.state !== 'inactive') {
       mr.onstop = null;
@@ -323,7 +371,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     setState(initialState);
-  }, [state, stopTimer, stopAudioLevelMonitor, releaseWakeLock, removePendingNote]);
+  }, [state, stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote]);
 
   const dismissPhoneCallWarning = useCallback(() => {
     setState((prev) => ({ ...prev, showPhoneCallWarning: false }));

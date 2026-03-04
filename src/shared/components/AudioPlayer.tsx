@@ -82,10 +82,16 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
       setIsPlaying(false);
     };
 
+    const handlePause = () => {
+      // Fired by OS audio interruption (incoming call) or user action
+      setIsPlaying(false);
+    };
+
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('error', handleError);
+    audio.addEventListener('pause', handlePause);
 
     // Check for corrupted audio (duration = 0 or NaN)
     if (isCorrupted || (audio.duration === 0 && audio.readyState > 0)) {
@@ -97,8 +103,21 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
+      audio.removeEventListener('pause', handlePause);
     };
   }, [blobUrl, isCorrupted]);
+
+  // Pause playback when app goes to background
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying && audioRef.current) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isPlaying]);
 
   const togglePlay = useCallback(async () => {
     const audio = audioRef.current;

@@ -51,6 +51,7 @@ export const HomePage: FC = () => {
   const [renameValue, setRenameValue] = useState('');
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
   const [showInitFailAlert, setShowInitFailAlert] = useState(false);
+  const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [presentToast] = useIonToast();
 
   useEffect(() => {
@@ -70,6 +71,8 @@ export const HomePage: FC = () => {
     const result = await startRecording();
     if (result === 'permission_denied') {
       setShowPermissionAlert(true);
+    } else if (result === 'offline') {
+      setShowOfflineAlert(true);
     } else if (result === 'init_failed') {
       setShowInitFailAlert(true);
     }
@@ -487,6 +490,16 @@ export const HomePage: FC = () => {
         buttons={[{ text: t('common.ok'), handler: () => setShowInitFailAlert(false) }]}
         onDidDismiss={() => setShowInitFailAlert(false)}
         data-testid="init-fail-alert"
+      />
+
+      {/* Offline alert */}
+      <IonAlert
+        isOpen={showOfflineAlert}
+        header={t('error.offline')}
+        message={t('recording.offlineMessage')}
+        buttons={[{ text: t('common.ok'), handler: () => setShowOfflineAlert(false) }]}
+        onDidDismiss={() => setShowOfflineAlert(false)}
+        data-testid="offline-alert"
       />
     </IonPage>
   );

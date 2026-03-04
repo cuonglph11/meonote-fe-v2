@@ -56,6 +56,7 @@
     "permissionDeniedMessage": "Vui lòng cho phép truy cập microphone trong Cài đặt để ghi âm.",
     "openSettings": "Mở Cài đặt",
     "initFailed": "Không thể khởi tạo ghi âm",
+    "offlineMessage": "Bạn đang ngoại tuyến. Ghi âm cần kết nối internet để khởi tạo. Vui lòng kiểm tra kết nối.",
     "uploadFailed": "Tải lên thất bại. Nhấn để thử lại.",
     "cancelConfirm": "Bạn có chắc chắn muốn hủy ghi âm này không?",
     "cancelRecording": "Hủy ghi âm",
@@ -108,6 +109,7 @@
   "error": {
     "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối của bạn.",
     "serverError": "Lỗi máy chủ. Vui lòng thử lại.",
-    "unknownError": "Đã xảy ra lỗi không mong muốn."
+    "unknownError": "Đã xảy ra lỗi không mong muốn.",
+    "offline": "Bạn đang ngoại tuyến"
   }
 }
