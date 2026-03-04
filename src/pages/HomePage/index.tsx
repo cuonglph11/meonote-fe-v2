@@ -139,8 +139,9 @@ export const HomePage: React.FC = () => {
 
   const handleRetryUpload = async (id: string) => {
     try {
-      await api.notes.retry(id);
-      updateNote(id, { status: 'pending' });
+      // Re-fetch note from API to check if processing completed
+      const fresh = await api.notes.get(id);
+      updateNote(id, fresh);
       presentToast({ message: t('detail.retrySuccess'), duration: 3000 });
     } catch {
       presentToast({ message: t('error.serverError'), duration: 3000, color: 'danger' });

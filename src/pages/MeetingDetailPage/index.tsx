@@ -126,7 +126,8 @@ export const MeetingDetailPage: React.FC = () => {
   const handleRetryUpload = async () => {
     if (!note) return;
     try {
-      const updated = await api.notes.retry(note.id);
+      // Re-fetch note from API to check if processing completed
+      const updated = await api.notes.get(note.id);
       setNote(updated);
       updateNote(note.id, updated);
       presentToast({ message: t('detail.retrySuccess'), duration: 3000 });

@@ -1,8 +1,8 @@
 import type { Note } from '../../types';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://meonote-api-v2.clen.dev/webhook';
 
-const TOKEN_KEY = 'meonote_user_token';
+const TOKEN_KEY = 'anonymous-token';
 
 export function getUserToken(): string {
   let token = localStorage.getItem(TOKEN_KEY);
@@ -13,11 +13,45 @@ export function getUserToken(): string {
   return token;
 }
 
+// Legacy API returns _id, map to our Note type
+interface LegacyNote {
+  _id: string;
+  title: string;
+  duration: number;
+  transcription?: string;
+  summarizedContent?: string;
+  createdAt: string;
+  updatedAt: string;
+  recordingMetadata?: {
+    fileUuid?: string;
+    duration_seconds?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+function mapNote(raw: LegacyNote): Note {
+  const hasContent = !!(raw.summarizedContent || raw.transcription);
+  return {
+    id: raw._id,
+    title: raw.title,
+    duration: raw.recordingMetadata?.duration_seconds ?? raw.duration ?? 0,
+    status: hasContent ? 'ready' : 'pending',
+    summarizedContent: raw.summarizedContent,
+    transcription: raw.transcription,
+    audioUrl: raw.recordingMetadata?.fileUuid
+      ? `${BASE_URL}/file/download?fileUuid=${raw.recordingMetadata.fileUuid}`
+      : undefined,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getUserToken();
 
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
+    'anonymous-token': token,
   };
 
   if (options.body && typeof options.body === 'string') {
@@ -46,40 +80,80 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const api = {
   notes: {
-    create: (): Promise<Note> =>
-      request<Note>('/notes', { method: 'POST', body: JSON.stringify({}) }),
+    create: async (): Promise<Note> => {
+      const raw = await request<Record<string, unknown>>('/note/init');
+      const id = (raw._id || raw.note_id) as string;
+      return {
+        id,
+        title: (raw.title as string) || `Recording ${new Date().toLocaleTimeString()}`,
+        duration: 0,
+        status: 'pending',
+        createdAt: (raw.createdAt as string) || new Date().toISOString(),
+        updatedAt: (raw.updatedAt as string) || new Date().toISOString(),
+      };
+    },
 
-    list: (): Promise<Note[]> => request<Note[]>('/notes'),
+    list: async (): Promise<Note[]> => {
+      const raw = await request<LegacyNote[]>('/notes');
+      return raw.map(mapNote);
+    },
 
-    get: (id: string): Promise<Note> => request<Note>(`/notes/${id}`),
+    get: async (id: string): Promise<Note> => {
+      const raw = await request<LegacyNote>(`/note?id=${id}`);
+      return mapNote(raw);
+    },
 
     update: (
       id: string,
       data: Partial<Pick<Note, 'title' | 'summarizedContent'>>
     ): Promise<Note> =>
-      request<Note>(`/notes/${id}`, {
-        method: 'PATCH',
+      request<LegacyNote>(`/note?id=${id}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
-      }),
+      }).then(mapNote),
 
     delete: (id: string): Promise<void> =>
-      request<void>(`/notes/${id}`, { method: 'DELETE' }),
+      request<void>(`/note?id=${id}`, { method: 'DELETE' }),
 
-    upload: (id: string, audio: Blob): Promise<Note> => {
+    upload: async (id: string, audio: Blob, type: 'partial' | 'final' = 'final'): Promise<Note> => {
       const token = getUserToken();
       const formData = new FormData();
-      formData.append('audio', audio, 'recording.webm');
-      return fetch(`${BASE_URL}/notes/${id}/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      }).then((r) => {
-        if (!r.ok) throw new Error(`Upload failed: ${r.status}`);
-        return r.json() as Promise<Note>;
-      });
+
+      // Detect extension from blob MIME type
+      let extension = 'webm';
+      if (audio.type === 'audio/mp4' || audio.type === 'audio/m4a') {
+        extension = 'm4a';
+      } else if (audio.type === 'audio/mpeg') {
+        extension = 'mp3';
+      }
+      formData.append('file', audio, `recording_${Date.now()}.${extension}`);
+
+      const response = await fetch(
+        `${BASE_URL}/upload-v4?type=${type}&noteId=${id}`,
+        {
+          method: 'POST',
+          headers: { 'anonymous-token': token },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+
+      // After upload, fetch the updated note
+      const raw = await request<LegacyNote>(`/note?id=${id}`);
+      return mapNote(raw);
     },
 
-    retry: (id: string): Promise<Note> =>
-      request<Note>(`/notes/${id}/retry`, { method: 'POST' }),
+    downloadAudio: async (fileUuid: string): Promise<Blob> => {
+      const token = getUserToken();
+      const response = await fetch(
+        `${BASE_URL}/file/download?fileUuid=${fileUuid}`,
+        {
+          headers: { 'anonymous-token': token },
+        }
+      );
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+      return response.blob();
+    },
   },
 };
