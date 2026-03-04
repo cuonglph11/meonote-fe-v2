@@ -141,7 +141,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, duration, is
   }
 
   return (
-    <div className="audio-player flex flex-col gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg" data-testid="audio-player">
+    <div className="audio-player flex flex-col gap-2 p-4 bg-stone-100 dark:bg-dark-surface rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm" data-testid="audio-player">
       {blobUrl && (
         <audio ref={audioRef} src={blobUrl} preload="metadata" data-testid="audio-element" />
       )}
@@ -164,7 +164,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioUrl, duration, is
           />
         </div>
 
-        <span className="text-xs text-gray-500 dark:text-gray-400 min-w-[80px] text-right" data-testid="audio-time">
+        <span className="text-xs text-warm-text-secondary dark:text-dark-text-secondary font-mono min-w-[80px] text-right" data-testid="audio-time">
           {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(audioDuration))}
         </span>
       </div>

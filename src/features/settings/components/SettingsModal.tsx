@@ -15,7 +15,7 @@ import {
   IonAlert,
 } from '@ionic/react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { X, Globe, Moon, FileText, Shield, User, Info, Trash2, ChevronRight } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 import { APP_VERSION } from '@/shared/lib/appVersion';
 import type { Theme, Language } from '../types';
@@ -26,8 +26,8 @@ interface SettingsModalProps {
 }
 
 type LegalView = 'terms' | 'privacy' | null;
-const TERMS_URL = 'https://meonote.app/terms';
-const PRIVACY_URL = 'https://meonote.app/privacy';
+const TERMS_URL = 'https://meonote-home.clen.dev/terms-of-service';
+const PRIVACY_URL = 'https://meonote-home.clen.dev/privacy-policy';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -87,100 +87,175 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       >
         <IonHeader>
           <IonToolbar>
+            <div slot="start" className="w-10" />
             <IonTitle>{t('settings.title')}</IonTitle>
             <IonButtons slot="end">
               <IonButton onClick={onClose} aria-label={t('common.close')}>
-                <X size={20} />
+                <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center">
+                  <X size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                </div>
               </IonButton>
             </IonButtons>
           </IonToolbar>
         </IonHeader>
 
         <IonContent className="ion-padding">
-          <IonList>
-            {/* Language */}
-            <IonItem data-testid="settings-language-item">
-              <IonLabel>{t('settings.language')}</IonLabel>
-              <IonSelect
-                value={settings.language}
-                onIonChange={(e) => setLanguage(e.detail.value as Language)}
-                data-testid="settings-language-select"
-              >
-                <IonSelectOption value="en">{t('settings.languageEn')}</IonSelectOption>
-                <IonSelectOption value="vi">{t('settings.languageVi')}</IonSelectOption>
-              </IonSelect>
-            </IonItem>
+          <div className="animate-fade-in">
+            {/* Preferences Section */}
+            <div className="mb-6">
+              <p className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+                {t('settings.title')}
+              </p>
+              <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
+                <IonList>
+                  <IonItem data-testid="settings-language-item">
+                    <div className="flex items-center gap-3 w-full py-1">
+                      <div className="w-8 h-8 rounded-xl bg-terracotta/10 dark:bg-terracotta-light/10 flex items-center justify-center flex-shrink-0">
+                        <Globe size={16} className="text-terracotta dark:text-terracotta-light" />
+                      </div>
+                      <IonLabel className="font-medium">{t('settings.language')}</IonLabel>
+                      <IonSelect
+                        value={settings.language}
+                        onIonChange={(e) => setLanguage(e.detail.value as Language)}
+                        data-testid="settings-language-select"
+                      >
+                        <IonSelectOption value="en">{t('settings.languageEn')}</IonSelectOption>
+                        <IonSelectOption value="vi">{t('settings.languageVi')}</IonSelectOption>
+                      </IonSelect>
+                    </div>
+                  </IonItem>
 
-            {/* Theme */}
-            <IonItem data-testid="settings-theme-item">
-              <IonLabel>{t('settings.theme')}</IonLabel>
-              <IonSelect
-                value={settings.theme}
-                onIonChange={(e) => setTheme(e.detail.value as Theme)}
-                data-testid="settings-theme-select"
-              >
-                <IonSelectOption value="light">{t('settings.themeLight')}</IonSelectOption>
-                <IonSelectOption value="dark">{t('settings.themeDark')}</IonSelectOption>
-                <IonSelectOption value="system">{t('settings.themeSystem')}</IonSelectOption>
-              </IonSelect>
-            </IonItem>
+                  <IonItem data-testid="settings-theme-item">
+                    <div className="flex items-center gap-3 w-full py-1">
+                      <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <Moon size={16} className="text-gold" />
+                      </div>
+                      <IonLabel className="font-medium">{t('settings.theme')}</IonLabel>
+                      <IonSelect
+                        value={settings.theme}
+                        onIonChange={(e) => setTheme(e.detail.value as Theme)}
+                        data-testid="settings-theme-select"
+                      >
+                        <IonSelectOption value="light">{t('settings.themeLight')}</IonSelectOption>
+                        <IonSelectOption value="dark">{t('settings.themeDark')}</IonSelectOption>
+                        <IonSelectOption value="system">{t('settings.themeSystem')}</IonSelectOption>
+                      </IonSelect>
+                    </div>
+                  </IonItem>
+                </IonList>
+              </div>
+            </div>
 
-            {/* Terms of Service */}
-            <IonItem
-              button
-              onClick={() => setLegalView('terms')}
-              data-testid="settings-terms-item"
-            >
-              <IonLabel>{t('settings.termsOfService')}</IonLabel>
-            </IonItem>
+            {/* Legal Section */}
+            <div className="mb-6">
+              <p className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+                Legal
+              </p>
+              <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
+                <IonList>
+                  <IonItem
+                    button
+                    onClick={() => setLegalView('terms')}
+                    data-testid="settings-terms-item"
+                  >
+                    <div className="flex items-center gap-3 w-full py-1">
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
+                        <FileText size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      </div>
+                      <IonLabel className="font-medium">{t('settings.termsOfService')}</IonLabel>
+                      <ChevronRight size={16} className="text-stone-300 dark:text-stone-600 flex-shrink-0" />
+                    </div>
+                  </IonItem>
 
-            {/* Privacy Policy */}
-            <IonItem
-              button
-              onClick={() => setLegalView('privacy')}
-              data-testid="settings-privacy-item"
-            >
-              <IonLabel>{t('settings.privacyPolicy')}</IonLabel>
-            </IonItem>
+                  <IonItem
+                    button
+                    onClick={() => setLegalView('privacy')}
+                    data-testid="settings-privacy-item"
+                  >
+                    <div className="flex items-center gap-3 w-full py-1">
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
+                        <Shield size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      </div>
+                      <IonLabel className="font-medium">{t('settings.privacyPolicy')}</IonLabel>
+                      <ChevronRight size={16} className="text-stone-300 dark:text-stone-600 flex-shrink-0" />
+                    </div>
+                  </IonItem>
+                </IonList>
+              </div>
+            </div>
 
-            {/* User ID */}
-            <IonItem data-testid="settings-userid-item">
-              <IonLabel>
-                <p>{t('settings.userId')}</p>
-                <p
-                  className="text-xs text-gray-500 font-mono mt-1"
-                  data-testid="settings-userid-value"
+            {/* About Section */}
+            <div className="mb-6">
+              <p className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+                About
+              </p>
+              <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
+                <IonList>
+                  <IonItem data-testid="settings-userid-item">
+                    <div className="flex items-center gap-3 w-full py-1">
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
+                        <User size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      </div>
+                      <IonLabel>
+                        <p className="font-medium">{t('settings.userId')}</p>
+                        <p
+                          className="text-xs text-warm-text-secondary dark:text-dark-text-secondary font-mono mt-0.5 opacity-70"
+                          data-testid="settings-userid-value"
+                        >
+                          {truncatedToken}
+                        </p>
+                      </IonLabel>
+                    </div>
+                  </IonItem>
+
+                  <IonItem data-testid="settings-version-item">
+                    <div className="flex items-center gap-3 w-full py-1">
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
+                        <Info size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      </div>
+                      <IonLabel>
+                        <p className="font-medium">{t('settings.version')}</p>
+                        <p
+                          className="text-xs text-warm-text-secondary dark:text-dark-text-secondary mt-0.5 opacity-70"
+                          data-testid="settings-version-value"
+                        >
+                          {APP_VERSION}
+                        </p>
+                      </IonLabel>
+                    </div>
+                  </IonItem>
+                </IonList>
+              </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="mb-6">
+              <div className="bg-red-50/60 dark:bg-red-950/20 rounded-2xl p-4 border border-red-100 dark:border-red-900/30">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                    <Trash2 size={16} className="text-red-500 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-heading font-semibold text-red-700 dark:text-red-300">
+                      Danger Zone
+                    </p>
+                    <p className="text-xs text-red-500/70 dark:text-red-400/60 mt-0.5">
+                      This action cannot be undone
+                    </p>
+                  </div>
+                </div>
+                <IonButton
+                  expand="block"
+                  color="danger"
+                  fill="outline"
+                  onClick={handleClearData}
+                  className="settings-clear-btn"
+                  data-testid="settings-clear-data-button"
                 >
-                  {truncatedToken}
-                </p>
-              </IonLabel>
-            </IonItem>
-
-            {/* App Version */}
-            <IonItem data-testid="settings-version-item">
-              <IonLabel>
-                <p>{t('settings.version')}</p>
-                <p
-                  className="text-xs text-gray-500 mt-1"
-                  data-testid="settings-version-value"
-                >
-                  {APP_VERSION}
-                </p>
-              </IonLabel>
-            </IonItem>
-          </IonList>
-
-          {/* Clear All Data */}
-          <div className="mt-6 px-4">
-            <IonButton
-              expand="block"
-              color="danger"
-              fill="outline"
-              onClick={handleClearData}
-              data-testid="settings-clear-data-button"
-            >
-              {t('settings.clearData')}
-            </IonButton>
+                  {t('settings.clearData')}
+                </IonButton>
+              </div>
+            </div>
           </div>
         </IonContent>
       </IonModal>

@@ -11,7 +11,7 @@ export const OfflineBanner: React.FC = () => {
 
   return (
     <div
-      className="flex items-center gap-2 bg-yellow-500 text-white px-4 py-2 text-sm font-medium"
+      className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-gold text-white px-4 py-2 text-sm font-medium animate-slide-up"
       role="alert"
       data-testid="offline-banner"
     >

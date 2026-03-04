@@ -13,7 +13,7 @@
  * TC-D10: Verify edit summarized content + save via API
  * TC-D11: Verify transcription tab displays correctly
  * TC-D12: Verify switch between Summary ↔ Transcription tabs
- * TC-D13: Verify inline edit title from detail page + save
+ * TC-D13: Verify title displays first line of summarizedContent
  * TC-D14: Verify delete note from detail → navigate back to home
  * TC-D15: Verify retry banner shows when summarizedContent is empty
  * TC-D16: Verify retry upload success → updates meeting data
@@ -331,29 +331,17 @@ describe('MeetingDetailPage', () => {
   });
 
   /**
-   * TC-D13: Verify inline edit title from detail page + save
+   * TC-D13: Verify title displays first line of summarizedContent
    */
-  it('TC-D13: can edit note title inline and save', async () => {
-    setupMocks({ title: 'Original Title' });
+  it('TC-D13: displays title derived from summarized content first line', async () => {
+    setupMocks({ title: 'Original Title', summarizedContent: '# Meeting Summary\nSome details here' });
     renderDetailPage();
 
     await waitFor(() => {
-      expect(screen.getByTestId('edit-title-button')).toBeInTheDocument();
+      expect(screen.getByTestId('note-title')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTestId('edit-title-button'));
-
-    const titleInput = await screen.findByTestId('title-edit-input');
-    expect(titleInput).toHaveValue('Original Title');
-
-    fireEvent.change(titleInput, { target: { value: 'New Title' } });
-
-    await act(async () => {
-      fireEvent.keyDown(titleInput, { key: 'Enter' });
-    });
-
-    expect(api.notes.update).toHaveBeenCalledWith('note-1', { title: 'New Title' });
-    expect(mockUpdateNote).toHaveBeenCalledWith('note-1', { title: 'New Title' });
+    expect(screen.getByTestId('note-title').textContent).toBe('Meeting Summary');
   });
 
   /**

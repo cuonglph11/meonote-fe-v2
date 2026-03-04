@@ -36,64 +36,100 @@ export const RecordingUI: React.FC = () => {
   };
 
   const isUploading = state.status === 'uploading' || state.status === 'stopping';
+  const isRecording = state.status === 'recording';
+  const isPaused = state.status === 'paused';
 
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center pb-safe"
+        className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 backdrop-blur-sm z-50 flex items-end justify-center pb-safe"
         data-testid="recording-ui"
       >
-        <div className="bg-white dark:bg-gray-900 rounded-t-3xl w-full max-w-md p-6 flex flex-col items-center gap-6">
-          {/* Status */}
-          <div className="flex flex-col items-center gap-2">
-            <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center relative ${
-                state.status === 'paused'
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30'
-                  : 'bg-red-100 dark:bg-red-900/30'
-              }`}
-            >
-              {/* Audio level ring */}
-              {state.status === 'recording' && (
-                <div
-                  className="absolute inset-0 rounded-full border-4 border-red-400 dark:border-red-500"
-                  style={{
-                    transform: `scale(${1 + state.audioLevel * 0.5})`,
-                    opacity: 0.3 + state.audioLevel * 0.7,
-                    transition: 'transform 0.15s ease-out, opacity 0.15s ease-out',
-                  }}
-                />
+        <div className="bg-warm-surface dark:bg-dark-surface rounded-t-[28px] w-full max-w-md p-6 flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up">
+
+          {/* Handle bar */}
+          <div className="w-10 h-1 rounded-full bg-stone-200 dark:bg-stone-700 -mt-1 mb-1" />
+
+          {/* Recording indicator */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              {/* Outer glow rings */}
+              {isRecording && (
+                <>
+                  <div
+                    className="absolute inset-0 rounded-full bg-terracotta/10 dark:bg-terracotta-light/10"
+                    style={{
+                      transform: `scale(${1.6 + state.audioLevel * 0.8})`,
+                      opacity: 0.15 + state.audioLevel * 0.3,
+                      transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0 rounded-full border-2 border-terracotta/30 dark:border-terracotta-light/30 animate-recording-ring"
+                    style={{
+                      transform: `scale(${1.3 + state.audioLevel * 0.4})`,
+                      transition: 'transform 0.15s ease-out',
+                    }}
+                  />
+                </>
               )}
-              <Mic
-                size={32}
-                className={state.status === 'paused' ? 'text-yellow-500' : 'text-red-500'}
-                aria-hidden="true"
-              />
+
+              {/* Main indicator circle */}
+              <div
+                className={`w-20 h-20 rounded-full flex items-center justify-center relative ${
+                  isPaused
+                    ? 'bg-gold/12 dark:bg-gold/8 border-2 border-gold/25 dark:border-gold/20'
+                    : 'bg-gradient-to-br from-terracotta/15 to-terracotta-light/10 dark:from-terracotta-light/12 dark:to-terracotta/8 border-2 border-terracotta/20 dark:border-terracotta-light/15'
+                }`}
+              >
+                <Mic
+                  size={34}
+                  strokeWidth={1.8}
+                  className={isPaused ? 'text-gold' : 'text-terracotta dark:text-terracotta-light'}
+                  aria-hidden="true"
+                />
+
+                {/* Live dot */}
+                {isRecording && (
+                  <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-terracotta dark:bg-terracotta-light shadow-sm shadow-terracotta/40">
+                    <div className="w-full h-full rounded-full bg-terracotta dark:bg-terracotta-light animate-pulse-record" />
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Audio level bar */}
-            {(state.status === 'recording' || state.status === 'paused') && (
-              <div className="w-48 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden" data-testid="audio-level-bar">
-                <div
-                  className="h-full bg-red-500 rounded-full"
-                  style={{
-                    width: `${Math.min(state.audioLevel * 100 * 3, 100)}%`,
-                    transition: 'width 0.15s ease-out',
-                  }}
-                />
+            {/* Audio level visualizer — multi-bar */}
+            {(isRecording || isPaused) && (
+              <div className="flex items-end gap-[3px] h-5" data-testid="audio-level-bar">
+                {[0.6, 0.8, 1.0, 0.9, 0.7, 1.0, 0.8, 0.5, 0.9, 0.7, 1.0, 0.6].map((weight, i) => {
+                  const level = isPaused ? 0.05 : Math.min(state.audioLevel * 3, 1) * weight;
+                  return (
+                    <div
+                      key={i}
+                      className="w-[3px] rounded-full bg-gradient-to-t from-terracotta to-terracotta-light dark:from-terracotta-light dark:to-gold"
+                      style={{
+                        height: `${Math.max(3, level * 20)}px`,
+                        opacity: isPaused ? 0.25 : 0.4 + level * 0.6,
+                        transition: 'height 0.12s ease-out, opacity 0.12s ease-out',
+                      }}
+                    />
+                  );
+                })}
               </div>
             )}
 
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            {/* Status label */}
+            <p className="text-xs font-heading font-medium tracking-wider uppercase text-warm-text-secondary dark:text-dark-text-secondary">
               {isUploading
                 ? t('home.uploading')
-                : state.status === 'paused'
+                : isPaused
                 ? t('recording.paused')
                 : t('recording.recording')}
             </p>
 
+            {/* Timer */}
             <p
-              className="text-4xl font-mono font-bold text-gray-900 dark:text-white"
+              className="text-5xl font-heading font-bold text-warm-text dark:text-dark-text tabular-nums tracking-tight"
               data-testid="recording-timer"
             >
               {formatDuration(state.duration)}
@@ -103,7 +139,7 @@ export const RecordingUI: React.FC = () => {
           {/* No audio warning */}
           {state.showNoAudioWarning && (
             <div
-              className="w-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm rounded-lg p-3 text-center"
+              className="w-full bg-terracotta/8 dark:bg-terracotta-light/8 text-terracotta dark:text-terracotta-light text-sm rounded-xl p-3 text-center border border-terracotta/15 dark:border-terracotta-light/15"
               data-testid="no-audio-warning"
             >
               {t('recording.noAudioDetected')}
@@ -113,7 +149,7 @@ export const RecordingUI: React.FC = () => {
           {/* Phone call warning */}
           {state.showPhoneCallWarning && (
             <div
-              className="w-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-sm rounded-lg p-3 text-center"
+              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 text-center border border-gold/15"
               data-testid="phone-call-warning"
             >
               {t('recording.phoneCallWarning')}
@@ -123,7 +159,7 @@ export const RecordingUI: React.FC = () => {
           {/* Low storage warning */}
           {state.showLowStorageWarning && (
             <div
-              className="w-full bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 text-sm rounded-lg p-3 text-center"
+              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 text-center border border-gold/15"
               data-testid="low-storage-warning"
             >
               {t('recording.lowStorage')}
@@ -132,48 +168,70 @@ export const RecordingUI: React.FC = () => {
 
           {/* Controls */}
           {!isUploading && (
-            <div className="flex items-center gap-8">
-              {/* Cancel */}
+            <div className="flex items-center justify-center gap-6 pt-1 pb-2">
+              {/* Cancel — small, subtle */}
               <IonButton
                 fill="clear"
-                color="danger"
                 onClick={handleCancel}
                 aria-label={t('recording.cancelRecording')}
                 data-testid="cancel-recording-button"
+                className="recording-control-btn"
               >
-                <X size={24} />
+                <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center border border-stone-200 dark:border-stone-700/50 active:scale-95 transition-transform">
+                  <X size={18} strokeWidth={2} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                </div>
               </IonButton>
 
-              {/* Pause / Resume */}
+              {/* Stop — large, prominent, terracotta */}
               <IonButton
-                fill="outline"
-                onClick={state.status === 'paused' ? resumeRecording : pauseRecording}
+                fill="clear"
+                onClick={handleStop}
+                aria-label={t('recording.stopRecording')}
+                data-testid="stop-recording-button"
+                className="recording-control-btn"
+              >
+                <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-terracotta to-terracotta-light dark:from-terracotta-light dark:to-terracotta flex items-center justify-center shadow-lg shadow-terracotta/30 dark:shadow-terracotta-light/20 active:scale-95 transition-transform">
+                  <Square size={22} fill="white" strokeWidth={0} className="text-white" />
+                </div>
+              </IonButton>
+
+              {/* Pause / Resume — medium, outlined */}
+              <IonButton
+                fill="clear"
+                onClick={isPaused ? resumeRecording : pauseRecording}
                 aria-label={
-                  state.status === 'paused'
+                  isPaused
                     ? t('recording.resumeRecording')
                     : t('recording.pauseRecording')
                 }
                 data-testid="pause-resume-button"
+                className="recording-control-btn"
               >
-                {state.status === 'paused' ? <Play size={20} /> : <Pause size={20} />}
-              </IonButton>
-
-              {/* Stop */}
-              <IonButton
-                color="danger"
-                onClick={handleStop}
-                aria-label={t('recording.stopRecording')}
-                data-testid="stop-recording-button"
-              >
-                <Square size={20} fill="currentColor" />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 active:scale-95 transition-transform ${
+                  isPaused
+                    ? 'bg-gold/10 border-gold/40 dark:border-gold/30'
+                    : 'bg-white dark:bg-dark-surface-elevated border-stone-200 dark:border-stone-600'
+                }`}>
+                  {isPaused ? (
+                    <Play size={18} strokeWidth={2.5} className="text-gold ml-0.5" />
+                  ) : (
+                    <Pause size={18} strokeWidth={2.5} className="text-warm-text dark:text-dark-text" />
+                  )}
+                </div>
               </IonButton>
             </div>
           )}
 
+          {/* Uploading state */}
           {isUploading && (
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              <span data-testid="uploading-indicator">{t('home.uploading')}</span>
+            <div className="flex flex-col items-center gap-3 py-2">
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 rounded-full border-3 border-stone-200 dark:border-stone-700" />
+                <div className="absolute inset-0 rounded-full border-3 border-terracotta dark:border-terracotta-light border-t-transparent animate-spin" />
+              </div>
+              <span className="text-sm font-medium text-warm-text-secondary dark:text-dark-text-secondary" data-testid="uploading-indicator">
+                {t('home.uploading')}
+              </span>
             </div>
           )}
         </div>

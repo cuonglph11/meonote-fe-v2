@@ -3,16 +3,13 @@ import {
   IonPage,
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonSearchbar,
   IonRefresher,
   IonRefresherContent,
   IonFab,
   IonFabButton,
-  IonIcon,
   IonButton,
-  IonButtons,
   IonList,
   IonItem,
   IonLabel,
@@ -27,7 +24,7 @@ import {
 } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mic, Settings, Share2, RefreshCw, Trash2, Edit3 } from 'lucide-react';
+import { Settings, Share2, RefreshCw, Trash2, Edit3, Mic } from 'lucide-react';
 import { useNotes } from '@/features/notes/hooks/useNotes';
 import { useRecording } from '@/features/recording/hooks/useRecording';
 import { useSettings } from '@/features/settings/hooks/useSettings';
@@ -173,68 +170,94 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  const renderNoteItem = (note: Note) => (
-    <IonItemSliding key={note.id} data-testid={`note-item-${note.id}`}>
-      <IonItem
-        button
-        onClick={() => handleNoteClick(note)}
-        detail={note.status === 'ready'}
-      >
-        <IonLabel>
-          <h2 className="font-medium">{note.title}</h2>
-          <IonNote className="text-xs">
-            {new Date(note.createdAt).toLocaleTimeString(settings.language, {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}{' '}
-            · {formatDuration(note.duration)}
-          </IonNote>
-        </IonLabel>
-        {renderStatusBadge(note)}
-      </IonItem>
+  const getDisplayTitle = (note: Note) => {
+    if (!note.summarizedContent) return note.title;
+    const firstLine = note.summarizedContent.split('\n')[0].replace(/^#+\s*/, '').trim();
+    return firstLine || note.title;
+  };
 
-      <IonItemOptions side="end">
-        <IonItemOption
-          color="primary"
-          onClick={() => handleRename(note)}
-          data-testid={`rename-button-${note.id}`}
+  const getPreviewSnippet = (note: Note) => {
+    if (!note.summarizedContent) return null;
+    const lines = note.summarizedContent.split('\n');
+    const rest = lines.slice(1).join(' ').replace(/^#+\s*/gm, '').trim();
+    return rest || null;
+  };
+
+  const renderNoteItem = (note: Note) => {
+    const statusColor = note.status === 'failed' ? 'bg-red-500' : note.status === 'pending' ? 'bg-gold' : 'bg-terracotta/30 dark:bg-terracotta-light/30';
+
+    return (
+      <IonItemSliding key={note.id} data-testid={`note-item-${note.id}`}>
+        <IonItem
+          button
+          onClick={() => handleNoteClick(note)}
+          detail={note.status === 'ready'}
+          className="note-item"
         >
-          <Edit3 size={18} />
-        </IonItemOption>
-        <IonItemOption
-          onClick={() => handleShare(note)}
-          data-testid={`share-button-${note.id}`}
-        >
-          <Share2 size={18} />
-        </IonItemOption>
-        {note.status === 'failed' && (
+          <div className={`w-[3px] self-stretch rounded-full mr-3.5 flex-shrink-0 ${statusColor}`} />
+          <IonLabel>
+            <h2 className="font-heading font-medium text-[0.9375rem] leading-snug text-warm-text dark:text-dark-text">{getDisplayTitle(note)}</h2>
+            <p style={{ fontSize: '12px', color: '#78716C', marginTop: '2px' }}>
+              {new Date(note.createdAt).toLocaleTimeString(settings.language === 'vi' ? 'vi-VN' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+              {' \u00B7 '}
+              {formatDuration(note.duration)}
+            </p>
+          </IonLabel>
+          {renderStatusBadge(note)}
+        </IonItem>
+
+        <IonItemOptions side="end">
           <IonItemOption
-            color="warning"
-            onClick={() => handleRetryUpload(note.id)}
-            data-testid={`retry-upload-button-${note.id}`}
+            color="primary"
+            onClick={() => handleRename(note)}
+            data-testid={`rename-button-${note.id}`}
           >
-            <RefreshCw size={18} />
+            <Edit3 size={18} />
           </IonItemOption>
-        )}
-        <IonItemOption
-          color="danger"
-          onClick={() => handleDelete(note.id)}
-          data-testid={`delete-button-${note.id}`}
-        >
-          <Trash2 size={18} />
-        </IonItemOption>
-      </IonItemOptions>
-    </IonItemSliding>
-  );
+          <IonItemOption
+            onClick={() => handleShare(note)}
+            data-testid={`share-button-${note.id}`}
+          >
+            <Share2 size={18} />
+          </IonItemOption>
+          {note.status === 'failed' && (
+            <IonItemOption
+              color="warning"
+              onClick={() => handleRetryUpload(note.id)}
+              data-testid={`retry-upload-button-${note.id}`}
+            >
+              <RefreshCw size={18} />
+            </IonItemOption>
+          )}
+          <IonItemOption
+            color="danger"
+            onClick={() => handleDelete(note.id)}
+            data-testid={`delete-button-${note.id}`}
+          >
+            <Trash2 size={18} />
+          </IonItemOption>
+        </IonItemOptions>
+      </IonItemSliding>
+    );
+  };
 
   const renderSection = (title: string, sectionNotes: Note[]) => {
     if (sectionNotes.length === 0) return null;
     return (
       <div key={title} data-testid={`section-${title.toLowerCase()}`}>
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            {title}
-          </p>
+        <div className="sticky top-0 z-10 px-4 py-2 bg-warm-ivory/95 dark:bg-dark-bg/95 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-terracotta dark:bg-terracotta-light opacity-70" />
+            <p className="text-[11px] font-heading font-semibold uppercase tracking-widest" style={{ color: 'var(--ion-text-color)', opacity: 0.5 }}>
+              {title}
+            </p>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-stone-100 dark:bg-dark-surface-elevated" style={{ color: 'var(--ion-text-color)', opacity: 0.4 }}>
+              {sectionNotes.length}
+            </span>
+          </div>
         </div>
         <IonList>{sectionNotes.map(renderNoteItem)}</IonList>
       </div>
@@ -243,18 +266,41 @@ export const HomePage: React.FC = () => {
 
   return (
     <IonPage data-testid="home-page">
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>{t('home.title')}</IonTitle>
-          <IonButtons slot="end">
+      <IonHeader className="home-header">
+        <IonToolbar className="home-toolbar">
+          <div className="flex items-center justify-between px-4 py-2">
+            {/* Left: Logo + Title + Date */}
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0">
+                <img src="/logo_meonote.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-lg font-heading font-bold tracking-tight text-warm-text dark:text-dark-text leading-none">
+                  {t('home.title')}
+                </h1>
+                <p className="text-[11px] font-body text-warm-text-secondary dark:text-dark-text-secondary mt-0.5 tracking-wide">
+                  {new Date().toLocaleDateString(settings.language === 'vi' ? 'vi-VN' : 'en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Settings */}
             <IonButton
+              fill="clear"
               onClick={() => setShowSettings(true)}
               aria-label={t('home.settings')}
               data-testid="settings-button"
+              className="home-settings-btn"
             >
-              <Settings size={20} />
+              <div className="w-9 h-9 rounded-xl bg-warm-surface-elevated dark:bg-dark-surface-elevated flex items-center justify-center ring-1 ring-stone-200/80 dark:ring-stone-700/50 active:scale-95 transition-transform">
+                <Settings size={17} strokeWidth={1.8} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+              </div>
             </IonButton>
-          </IonButtons>
+          </div>
         </IonToolbar>
       </IonHeader>
 
@@ -280,16 +326,22 @@ export const HomePage: React.FC = () => {
 
         {/* Pending notes */}
         {pendingNotes.length > 0 && (
-          <div data-testid="pending-notes-section">
+          <div className="px-4 pb-2" data-testid="pending-notes-section">
             {pendingNotes.map((pending) => (
-              <IonItem key={pending.id} data-testid={`pending-note-${pending.id}`}>
+              <IonItem key={pending.id} className="pending-note-item" data-testid={`pending-note-${pending.id}`}>
+                <div className="w-[3px] self-stretch rounded-full mr-3.5 flex-shrink-0 bg-gold" />
                 <IonLabel>
-                  <h2>{pending.title}</h2>
-                  <IonNote className="text-xs">{formatDuration(pending.duration)}</IonNote>
+                  <h2 className="font-heading font-medium text-[0.9375rem] text-warm-text dark:text-dark-text">{pending.title}</h2>
+                  <span className="text-[11px] text-warm-text-secondary dark:text-dark-text-secondary font-mono">{formatDuration(pending.duration)}</span>
                 </IonLabel>
-                <IonBadge color="warning">
-                  {pending.uploading ? t('home.uploading') : t('home.pending')}
-                </IonBadge>
+                <div className="flex items-center gap-2">
+                  {pending.uploading && (
+                    <div className="w-3.5 h-3.5 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+                  )}
+                  <IonBadge color="warning">
+                    {pending.uploading ? t('home.uploading') : t('home.pending')}
+                  </IonBadge>
+                </div>
               </IonItem>
             ))}
           </div>
@@ -301,7 +353,7 @@ export const HomePage: React.FC = () => {
             className="flex flex-col items-center justify-center py-12 px-4 text-center"
             data-testid="error-state"
           >
-            <p className="text-gray-500 dark:text-gray-400 mb-4">{t('home.loadError')}</p>
+            <p className="text-warm-text-secondary dark:text-dark-text-secondary mb-4">{t('home.loadError')}</p>
             <IonButton onClick={retryNoteLoad} fill="outline" data-testid="retry-load-button">
               {t('home.retryLoad')}
             </IonButton>
@@ -311,7 +363,7 @@ export const HomePage: React.FC = () => {
         {/* Loading */}
         {loading && notes.length === 0 && (
           <div className="flex items-center justify-center py-12" data-testid="loading-state">
-            <p className="text-gray-400">{t('common.loading')}</p>
+            <p className="text-warm-text-secondary dark:text-dark-text-secondary">{t('common.loading')}</p>
           </div>
         )}
 
@@ -321,10 +373,10 @@ export const HomePage: React.FC = () => {
             className="flex flex-col items-center justify-center py-16 px-4 text-center"
             data-testid="no-search-results"
           >
-            <p className="text-xl font-medium text-gray-700 dark:text-gray-300">
+            <p className="text-xl font-heading font-medium text-warm-text dark:text-dark-text">
               {t('home.noSearchResults')}
             </p>
-            <p className="text-gray-400 dark:text-gray-500 mt-2">
+            <p className="text-warm-text-secondary dark:text-dark-text-secondary mt-2">
               {t('home.noSearchResultsHint')}
             </p>
           </div>
@@ -332,16 +384,19 @@ export const HomePage: React.FC = () => {
 
         {!loading && !error && !hasNotes && (
           <div
-            className="flex flex-col items-center justify-center py-16 px-4 text-center"
+            className="flex flex-col items-center justify-center py-20 px-6 text-center"
             data-testid="empty-state"
           >
-            <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-              <Mic size={48} className="text-gray-300 dark:text-gray-600" aria-hidden="true" />
+            <div className="relative mb-8">
+              <div className="w-28 h-28 rounded-[32px] overflow-hidden animate-float shadow-lg shadow-terracotta/10">
+                <img src="/logo_meonote.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-gold rounded-full animate-pulse-record" />
             </div>
-            <p className="text-xl font-medium text-gray-700 dark:text-gray-300">
+            <p className="text-xl font-heading font-semibold text-warm-text dark:text-dark-text">
               {t('home.noNotes')}
             </p>
-            <p className="text-gray-400 dark:text-gray-500 mt-2">{t('home.noNotesHint')}</p>
+            <p className="text-sm text-warm-text-secondary dark:text-dark-text-secondary mt-2 max-w-[240px] leading-relaxed">{t('home.noNotesHint')}</p>
           </div>
         )}
 
@@ -362,7 +417,7 @@ export const HomePage: React.FC = () => {
             aria-label={t('home.record')}
             data-testid="record-fab"
           >
-            <IonIcon name="mic" />
+            <Mic size={26} strokeWidth={2} className="text-white" />
           </IonFabButton>
         </IonFab>
       </IonContent>

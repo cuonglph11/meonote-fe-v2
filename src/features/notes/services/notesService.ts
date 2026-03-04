@@ -68,13 +68,26 @@ export function groupNotesByDate(notes: Note[]): {
   return { today, yesterday, older };
 }
 
+/**
+ * Normalize Vietnamese text by removing diacritics/tone marks for accent-insensitive search.
+ * e.g. "cuộc họp" → "cuoc hop", "Đà Nẵng" → "da nang"
+ */
+function normalizeVietnamese(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // strip combining diacritical marks
+    .replace(/đ/g, 'd')              // handle đ separately (not a combining mark)
+    .replace(/Đ/g, 'd');
+}
+
 export function filterNotes(notes: Note[], query: string): Note[] {
   if (!query.trim()) return notes;
-  const q = query.toLowerCase();
+  const q = normalizeVietnamese(query);
   return notes.filter(
     (n) =>
-      n.title.toLowerCase().includes(q) ||
-      (n.summarizedContent && n.summarizedContent.toLowerCase().includes(q))
+      normalizeVietnamese(n.title).includes(q) ||
+      (n.summarizedContent && normalizeVietnamese(n.summarizedContent).includes(q))
   );
 }
 

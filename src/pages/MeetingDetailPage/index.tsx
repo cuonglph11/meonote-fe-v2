@@ -11,7 +11,6 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel,
-  IonIcon,
   IonSpinner,
   IonAlert,
   useIonToast,
@@ -19,10 +18,12 @@ import {
 import { useParams, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit3, RefreshCw, ChevronsUp, Mic } from 'lucide-react';
+import { formatDuration } from '@/features/notes/services/notesService';
 import { useNotes } from '@/features/notes/hooks/useNotes';
 import { useRecording } from '@/features/recording/hooks/useRecording';
 import { AudioPlayer } from '@/shared/components/AudioPlayer';
 import { RecordingUI } from '@/features/recording/components/RecordingUI';
+import { MarkdownContent } from '@/shared/components/MarkdownContent';
 import { api } from '@/shared/lib/api/client';
 import type { Note } from '@/shared/types';
 
@@ -38,8 +39,6 @@ export const MeetingDetailPage: React.FC = () => {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('summary');
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editTitleValue, setEditTitleValue] = useState('');
   const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [editSummaryValue, setEditSummaryValue] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -78,22 +77,10 @@ export const MeetingDetailPage: React.FC = () => {
     contentRef.current?.scrollToTop(300);
   }, []);
 
-  const handleSaveTitle = async () => {
-    if (!note || !editTitleValue.trim()) {
-      setIsEditingTitle(false);
-      return;
-    }
-    const newTitle = editTitleValue.trim();
-    setIsEditingTitle(false);
-    setNote((prev) => (prev ? { ...prev, title: newTitle } : prev));
-    updateNote(note.id, { title: newTitle });
-    try {
-      await api.notes.update(note.id, { title: newTitle });
-    } catch {
-      // Revert on error
-      setNote((prev) => (prev ? { ...prev, title: note.title } : prev));
-      updateNote(note.id, { title: note.title });
-    }
+  const getDisplayTitle = (n: Note) => {
+    if (!n.summarizedContent) return n.title;
+    const firstLine = n.summarizedContent.split('\n')[0].replace(/^#+\s*/, '').trim();
+    return firstLine || n.title;
   };
 
   const handleSaveSummary = async () => {
@@ -190,40 +177,11 @@ export const MeetingDetailPage: React.FC = () => {
             <IonBackButton defaultHref="/home" data-testid="back-button" />
           </IonButtons>
 
-          {/* Inline title editing */}
-          {isEditingTitle ? (
-            <input
-              className="flex-1 bg-transparent text-lg font-medium px-2 outline-none border-b border-blue-500"
-              value={editTitleValue}
-              onChange={(e) => setEditTitleValue(e.target.value)}
-              onBlur={handleSaveTitle}
-              onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
-              autoFocus
-              data-testid="title-edit-input"
-            />
-          ) : (
-            <IonTitle
-              onClick={() => {
-                setIsEditingTitle(true);
-                setEditTitleValue(note.title);
-              }}
-              data-testid="note-title"
-            >
-              {note.title}
-            </IonTitle>
-          )}
+          <IonTitle data-testid="note-title">
+            {getDisplayTitle(note)}
+          </IonTitle>
 
           <IonButtons slot="end">
-            <IonButton
-              onClick={() => {
-                setIsEditingTitle(true);
-                setEditTitleValue(note.title);
-              }}
-              aria-label={t('detail.editTitle')}
-              data-testid="edit-title-button"
-            >
-              <Edit3 size={18} />
-            </IonButton>
             <IonButton
               color="danger"
               onClick={() => setShowDeleteConfirm(true)}
@@ -253,20 +211,34 @@ export const MeetingDetailPage: React.FC = () => {
         {/* Retry banner */}
         {needsRetry && (
           <div
-            className="flex items-center justify-between bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4 cursor-pointer"
+            className="flex items-center justify-between bg-gold/10 dark:bg-gold/5 border border-gold/30 dark:border-gold/20 rounded-xl p-3 mb-4 cursor-pointer"
             onClick={handleRetryUpload}
             data-testid="retry-banner"
           >
-            <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+            <p className="text-gold dark:text-gold text-sm font-medium">
               {t('detail.retryBanner')}
             </p>
             <RefreshCw
               size={18}
-              className="text-yellow-600 dark:text-yellow-400 flex-shrink-0"
+              className="text-gold flex-shrink-0"
               aria-hidden="true"
             />
           </div>
         )}
+
+        {/* Note metadata */}
+        <div className="flex items-center gap-2 mb-3 text-[11px] text-warm-text-secondary dark:text-dark-text-secondary">
+          <span>
+            {new Date(note.createdAt).toLocaleDateString(undefined, {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </span>
+          <span className="w-[3px] h-[3px] rounded-full bg-warm-text-secondary/30 dark:bg-dark-text-secondary/30" />
+          <span className="font-mono">{formatDuration(note.duration)}</span>
+        </div>
 
         {/* Audio player */}
         <div className="mb-6" data-testid="audio-player-section">
@@ -293,34 +265,35 @@ export const MeetingDetailPage: React.FC = () => {
 
         {/* Summary tab */}
         {activeTab === 'summary' && (
-          <div className="mt-4" data-testid="summary-content">
+          <div className="mt-4 animate-fade-in" data-testid="summary-content">
             {isEditingSummary ? (
-              <div>
+              <div className="bg-white dark:bg-dark-surface rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-stone-100 dark:border-stone-700/50 bg-stone-50/50 dark:bg-dark-surface-elevated/50">
+                  <span className="text-xs font-heading font-medium text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">Markdown</span>
+                  <div className="flex gap-1">
+                    <IonButton fill="clear" size="small" onClick={() => setIsEditingSummary(false)}>
+                      {t('common.cancel')}
+                    </IonButton>
+                    <IonButton size="small" onClick={handleSaveSummary}>{t('common.save')}</IonButton>
+                  </div>
+                </div>
                 <textarea
-                  className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white resize-none outline-none border border-blue-500 min-h-[200px]"
+                  className="w-full p-4 bg-transparent text-warm-text dark:text-dark-text resize-y outline-none font-mono text-sm leading-relaxed min-h-[60vh] max-h-[80vh]"
                   value={editSummaryValue}
                   onChange={(e) => setEditSummaryValue(e.target.value)}
                   autoFocus
                   data-testid="summary-edit-textarea"
                 />
-                <div className="flex justify-end gap-2 mt-2">
-                  <IonButton fill="clear" onClick={() => setIsEditingSummary(false)}>
-                    {t('common.cancel')}
-                  </IonButton>
-                  <IonButton onClick={handleSaveSummary}>{t('common.save')}</IonButton>
-                </div>
               </div>
             ) : (
               <div>
                 {note.summarizedContent ? (
-                  <div
-                    className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
+                  <MarkdownContent
+                    content={note.summarizedContent}
                     data-testid="summary-text"
-                  >
-                    {note.summarizedContent}
-                  </div>
+                  />
                 ) : (
-                  <p className="text-gray-400 dark:text-gray-500 italic" data-testid="no-summary">
+                  <p className="text-warm-text-secondary dark:text-dark-text-secondary italic" data-testid="no-summary">
                     {t('detail.noSummary')}
                   </p>
                 )}
@@ -344,17 +317,15 @@ export const MeetingDetailPage: React.FC = () => {
 
         {/* Transcription tab */}
         {activeTab === 'transcription' && (
-          <div className="mt-4" data-testid="transcription-content">
+          <div className="mt-4 animate-fade-in" data-testid="transcription-content">
             {note.transcription ? (
-              <div
-                className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
+              <MarkdownContent
+                content={note.transcription}
                 data-testid="transcription-text"
-              >
-                {note.transcription}
-              </div>
+              />
             ) : (
               <p
-                className="text-gray-400 dark:text-gray-500 italic"
+                className="text-warm-text-secondary dark:text-dark-text-secondary italic"
                 data-testid="no-transcription"
               >
                 {t('detail.noTranscription')}
