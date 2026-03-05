@@ -1,0 +1,25 @@
+diff --git a/node_modules/capacitor-live-activities/Package.swift b/node_modules/capacitor-live-activities/Package.swift
+index b846a74..792ce13 100644
+--- a/node_modules/capacitor-live-activities/Package.swift
++++ b/node_modules/capacitor-live-activities/Package.swift
+@@ -10,7 +10,7 @@ let package = Package(
+             targets: ["LiveActivitiesPlugin"])
+     ],
+     dependencies: [
+-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "7.0.0")
++        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", "7.0.0"..<"9.0.0")
+     ],
+     targets: [
+         .target(
+diff --git a/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift b/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift
+index 8d2aad6..71075fc 100644
+--- a/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift
++++ b/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift
+@@ -1,6 +1,7 @@
+ import Foundation
+ import OSLog
+ import SwiftUI
++import LiveActivitiesKit
+ 
+ #if canImport(ActivityKit)
+ import ActivityKit

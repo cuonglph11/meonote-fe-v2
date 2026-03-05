@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "jest --config jest.config.cjs --passWithNoTests",
-    "test:coverage": "jest --config jest.config.cjs --coverage"
+    "test:coverage": "jest --config jest.config.cjs --coverage",
+    "postinstall": "npx patch-package"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
