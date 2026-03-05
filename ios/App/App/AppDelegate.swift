@@ -1,5 +1,8 @@
 import UIKit
 import Capacitor
+import ActivityKit
+import os.log
+import LiveActivitiesKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,7 +10,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // End any orphaned Live Activities from a previous session (force-kill recovery)
+        LiveActivityCleanup.endAllActivities()
         return true
     }
 
@@ -17,8 +21,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        // Let recording continue in background
+        // AVAudioRecorder writes audio data to disk continuously
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -30,7 +34,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
-        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        // Attempt to end Live Activities on termination (best-effort; may not complete on force-kill)
+        LiveActivityCleanup.endAllActivities()
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
@@ -46,4 +51,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+}
+
+// MARK: - Live Activity Cleanup Helper
+enum LiveActivityCleanup {
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MeoNote", category: "LiveActivityCleanup")
+
+    static func endAllActivities() {
+        guard #available(iOS 16.2, *) else {
+            return
+        }
+
+        let activities = Activity<DynamicActivityAttributes>.activities
+        logger.info("Ending \(activities.count) orphaned Live Activities on launch/terminate")
+
+        for activity in activities {
+            Task.detached(priority: .userInitiated) {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+    }
 }
