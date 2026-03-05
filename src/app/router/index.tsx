@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { FC } from 'react';
 import { IonRouterOutlet, IonSpinner } from '@ionic/react';
-import { Route, Redirect, Switch } from 'react-router-dom';
+import { Route, Redirect } from 'react-router-dom';
 
 const OnboardingPage = lazy(() =>
   import('@/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage }))
@@ -27,12 +27,10 @@ const RootRedirect: FC = () => {
 export const AppRouter: FC = () => (
   <IonRouterOutlet>
     <Suspense fallback={<LazyFallback />}>
-      <Switch>
-        <Route path="/onboarding" component={OnboardingPage} exact />
-        <Route path="/home" component={HomePage} exact />
-        <Route path="/meeting/:id" component={MeetingDetailPage} exact />
-        <Route exact path="/" component={RootRedirect} />
-      </Switch>
+      <Route path="/onboarding" component={OnboardingPage} exact />
+      <Route path="/home" component={HomePage} exact />
+      <Route path="/meeting/:id" component={MeetingDetailPage} exact />
+      <Route exact path="/" component={RootRedirect} />
     </Suspense>
   </IonRouterOutlet>
 );

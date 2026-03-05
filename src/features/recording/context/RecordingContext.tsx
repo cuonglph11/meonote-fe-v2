@@ -63,6 +63,9 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
   const storageCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isNativeRef = useRef(false);
   const durationRef = useRef(0);
+  const recordingStartTimeRef = useRef(0);
+  const totalPausedMsRef = useRef(0);
+  const pauseStartTimeRef = useRef(0);
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock();
   const { addPendingNote, removePendingNote, updatePendingNote, addNote } = useNotes();
 
@@ -93,6 +96,9 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         recordingManager.setAppBackgrounded(false);
         const { hasInterruption } = await recordingManager.checkForInterruption();
         if (hasInterruption) {
+          if (pauseStartTimeRef.current === 0) {
+            pauseStartTimeRef.current = Date.now();
+          }
           setState(prev => {
             if (prev.status !== 'recording') return prev;
             return {
@@ -103,6 +109,11 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
             };
           });
           pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+        } else if (stateRef.current.status === 'recording') {
+          // Recalculate duration immediately after returning from background
+          const elapsed = Math.floor((Date.now() - recordingStartTimeRef.current - totalPausedMsRef.current) / 1000);
+          durationRef.current = elapsed;
+          setState(prev => ({ ...prev, duration: elapsed }));
         }
       }
     });
@@ -110,15 +121,15 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     return () => { listener.then(l => l.remove()); };
   }, []);
 
-  const startTimer = useCallback(() => {
-    timerRef.current = setInterval(() => {
-      setState((prev) => {
-        const newDuration = prev.duration + 1;
-        durationRef.current = newDuration;
-        return { ...prev, duration: newDuration };
-      });
-    }, 1000);
+  const recalcDuration = useCallback(() => {
+    const elapsed = Math.floor((Date.now() - recordingStartTimeRef.current - totalPausedMsRef.current) / 1000);
+    durationRef.current = elapsed;
+    setState((prev) => ({ ...prev, duration: elapsed }));
   }, []);
+
+  const startTimer = useCallback(() => {
+    timerRef.current = setInterval(recalcDuration, 1000);
+  }, [recalcDuration]);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -135,6 +146,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       if (data.type === 'began') {
         // Native side already paused the AVAudioRecorder; sync JS state
         recordingManager.syncPaused();
+        pauseStartTimeRef.current = Date.now();
         stopTimer();
         setState(prev => {
           if (prev.status !== 'recording') return prev;
@@ -286,6 +298,10 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
           return 'init_failed';
         }
 
+        recordingStartTimeRef.current = Date.now();
+        totalPausedMsRef.current = 0;
+        pauseStartTimeRef.current = 0;
+
         setState({
           status: 'recording',
           duration: 0,
@@ -389,6 +405,10 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       const low = await checkLowStorage();
       setState(prev => ({ ...prev, showLowStorageWarning: low }));
     }, 30_000);
+
+    recordingStartTimeRef.current = Date.now();
+    totalPausedMsRef.current = 0;
+    pauseStartTimeRef.current = 0;
 
     setState({
       status: 'recording',
@@ -526,6 +546,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         }
       } catch (err) {
         console.error('[Recording] Native stop failed:', err);
+        endRecordingLiveActivity({ status: 'saved', seconds: duration }).catch(() => {});
         recordingManager.reset();
         recordingService.clearOrphanedRecording();
         removePendingNote(noteId);
@@ -597,6 +618,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         if (!mr) return;
         mr.pause();
       }
+      pauseStartTimeRef.current = Date.now();
       stopTimer();
       updateStatus('paused');
       pauseRecordingLiveActivity(durationRef.current).catch(() => {});
@@ -616,6 +638,8 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         if (!mr) return;
         mr.resume();
       }
+      totalPausedMsRef.current += Date.now() - pauseStartTimeRef.current;
+      pauseStartTimeRef.current = 0;
       startTimer();
       setState(prev => ({
         ...prev,
@@ -689,6 +713,19 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       return false;
     }
   }, [addNote]);
+
+  // Deep link handler: meonote://record triggers auto-start recording
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+
+    const listener = App.addListener('appUrlOpen', ({ url }) => {
+      if (url === 'meonote://record' && stateRef.current.status === 'idle') {
+        startRecording();
+      }
+    });
+
+    return () => { listener.then(l => l.remove()); };
+  }, [startRecording]);
 
   const isActive = state.status !== 'idle' && state.status !== 'cancelled';
 

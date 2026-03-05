@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import type { FC } from 'react';
-import { IonButton, IonProgressBar } from '@ionic/react';
+import { IonButton } from '@ionic/react';
 import { Play, Pause } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDuration } from '@/features/notes/services/notesService';
@@ -15,6 +15,8 @@ interface AudioPlayerProps {
 export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrupted }) => {
   const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(duration);
@@ -137,6 +139,34 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
     }
   }, [isPlaying, isDisabled]);
 
+  const seekToPosition = useCallback((clientX: number) => {
+    const audio = audioRef.current;
+    const bar = progressBarRef.current;
+    if (!audio || !bar || isDisabled || !audio.duration) return;
+    const rect = bar.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    audio.currentTime = ratio * audio.duration;
+  }, [isDisabled]);
+
+  const handleBarClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    seekToPosition(e.clientX);
+  }, [seekToPosition]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    isDragging.current = true;
+    seekToPosition(e.touches[0].clientX);
+  }, [seekToPosition]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    seekToPosition(e.touches[0].clientX);
+  }, [seekToPosition]);
+
+  const handleTouchEnd = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
   const progress = audioDuration > 0 ? currentTime / audioDuration : 0;
 
   if (!audioUrl) {
@@ -178,10 +208,22 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
           {isPlaying ? <Pause size={20} /> : <Play size={20} />}
         </IonButton>
 
-        <div className="flex-1">
-          <IonProgressBar
-            value={progress}
-            data-testid="audio-progress"
+        <div
+          ref={progressBarRef}
+          className="flex-1 h-2 bg-stone-300 dark:bg-stone-600 rounded-full cursor-pointer relative select-none touch-none"
+          onClick={handleBarClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          data-testid="audio-progress"
+        >
+          <div
+            className="h-full bg-[var(--ion-color-primary)] rounded-full pointer-events-none"
+            style={{ width: `${progress * 100}%` }}
+          />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md border border-stone-300 dark:border-stone-500 pointer-events-none"
+            style={{ left: `calc(${progress * 100}% - 8px)` }}
           />
         </div>
 

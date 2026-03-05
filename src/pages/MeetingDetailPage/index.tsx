@@ -18,7 +18,7 @@ import {
 } from '@ionic/react';
 import { useParams, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Edit3, RefreshCw, ChevronsUp, Mic } from 'lucide-react';
+import { Trash2, Edit3, RefreshCw, ChevronsUp, Pencil } from 'lucide-react';
 import { formatDuration } from '@/features/notes/services/notesService';
 import { useNotes } from '@/features/notes/hooks/useNotes';
 import { useRecording } from '@/features/recording/hooks/useRecording';
@@ -194,11 +194,15 @@ export const MeetingDetailPage: FC = () => {
               <Trash2 size={18} />
             </IonButton>
             <IonButton
-              onClick={handleNewRecording}
-              aria-label={t('detail.newRecording')}
-              data-testid="new-recording-button"
+              onClick={() => {
+                setActiveTab('summary');
+                setIsEditingSummary(true);
+                setEditSummaryValue(note.summarizedContent || '');
+              }}
+              aria-label={t('detail.editSummary')}
+              data-testid="edit-summary-header-button"
             >
-              <Mic size={18} />
+              <Pencil size={18} />
             </IonButton>
           </IonButtons>
         </IonToolbar>
