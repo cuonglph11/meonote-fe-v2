@@ -12,7 +12,8 @@ const config: CapacitorConfig = {
       '@capacitor/preferences',
       '@capacitor/status-bar',
       '@capacitor/device',
-      '@capacitor/filesystem'
+      '@capacitor/filesystem',
+      'capacitor-live-activities'
     ]
   }
 };
