@@ -348,6 +348,7 @@ public class RecorderPlugin: CAPPlugin, CAPBridgedPlugin {
                 recorder.pause()
                 recordingState = .paused
                 print("[RecorderPlugin] Recording paused due to interruption")
+                self.notifyListeners("recordingInterrupted", data: ["type": "began"])
             }
 
         case .ended:
@@ -359,10 +360,14 @@ public class RecorderPlugin: CAPPlugin, CAPBridgedPlugin {
                         if let recorder = audioRecorder, recorder.record() {
                             recordingState = .recording
                             print("[RecorderPlugin] Recording resumed after interruption")
+                            self.notifyListeners("recordingInterrupted", data: ["type": "ended"])
                         }
                     } catch {
                         print("[RecorderPlugin] Failed to resume after interruption: \(error)")
                     }
+                } else {
+                    // Interruption ended but system says don't resume
+                    self.notifyListeners("recordingInterrupted", data: ["type": "ended"])
                 }
             }
 

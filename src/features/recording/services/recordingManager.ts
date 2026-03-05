@@ -36,6 +36,15 @@ class RecordingManager {
     return this.startTime;
   }
 
+  /** Sync JS state when native side has already paused the recorder (e.g. interruption). */
+  syncPaused(): void {
+    if (this.state === 'recording') {
+      this.state = 'paused';
+      this.pauseStartTime = Date.now();
+      console.log('[RecordingManager] Synced to paused (native interruption)');
+    }
+  }
+
   setAppBackgrounded(value: boolean): void {
     if (this.state === 'recording') {
       this.appWasBackgrounded = value;

@@ -1,6 +1,11 @@
 import { registerPlugin } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface RecorderPlugin {
+  addListener(
+    eventName: 'recordingInterrupted',
+    listenerFunc: (data: { type: 'began' | 'ended' }) => void,
+  ): Promise<PluginListenerHandle>;
   requestPermission(): Promise<{ value: boolean }>;
   hasAudioRecordingPermission(): Promise<{ value: boolean }>;
   requestAudioRecordingPermission(): Promise<{ value: boolean }>;

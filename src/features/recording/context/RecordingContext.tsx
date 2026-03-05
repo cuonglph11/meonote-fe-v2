@@ -7,6 +7,7 @@ import { recordingService } from '../services/recordingService';
 import { recordingManager } from '../services/recordingManager';
 import { localAudioStorage } from '../services/localAudioStorage';
 import { isNativePlatform } from '@/shared/lib/platform';
+import Recorder from '@/shared/plugins/recorder';
 import { useWakeLock } from '@/shared/hooks/useWakeLock';
 import { useNotes } from '@/features/notes/hooks/useNotes';
 import {
@@ -123,6 +124,34 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       timerRef.current = null;
     }
   }, []);
+
+  // Native interruption listener: RecorderPlugin fires 'recordingInterrupted' directly
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+
+    const listener = Recorder.addListener('recordingInterrupted', (data) => {
+      if (data.type === 'began') {
+        // Native side already paused the AVAudioRecorder; sync JS state
+        recordingManager.syncPaused();
+        stopTimer();
+        setState(prev => {
+          if (prev.status !== 'recording') return prev;
+          return {
+            ...prev,
+            status: 'paused',
+            showPhoneCallWarning: true,
+            interruptionDetected: true,
+          };
+        });
+        pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+      } else if (data.type === 'ended') {
+        // Interruption ended — user must manually resume via the UI
+        setState(prev => ({ ...prev, showPhoneCallWarning: false }));
+      }
+    });
+
+    return () => { listener.then(l => l.remove()); };
+  }, [stopTimer]);
 
   const updateStatus = useCallback((status: RecordingStatus) => {
     setState((prev) => ({ ...prev, status }));
