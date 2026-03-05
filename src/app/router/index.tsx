@@ -1,9 +1,23 @@
+import { lazy, Suspense } from 'react';
 import type { FC } from 'react';
-import { IonRouterOutlet } from '@ionic/react';
+import { IonRouterOutlet, IonSpinner } from '@ionic/react';
 import { Route, Redirect, Switch } from 'react-router-dom';
-import { OnboardingPage } from '@/pages/OnboardingPage';
-import { HomePage } from '@/pages/HomePage';
-import { MeetingDetailPage } from '@/pages/MeetingDetailPage';
+
+const OnboardingPage = lazy(() =>
+  import('@/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage }))
+);
+const HomePage = lazy(() =>
+  import('@/pages/HomePage').then((m) => ({ default: m.HomePage }))
+);
+const MeetingDetailPage = lazy(() =>
+  import('@/pages/MeetingDetailPage').then((m) => ({ default: m.MeetingDetailPage }))
+);
+
+const LazyFallback: FC = () => (
+  <div className="flex items-center justify-center h-full">
+    <IonSpinner />
+  </div>
+);
 
 const RootRedirect: FC = () => {
   const onboardingCompleted = localStorage.getItem('meonote_onboarding_completed') === 'true';
@@ -12,11 +26,13 @@ const RootRedirect: FC = () => {
 
 export const AppRouter: FC = () => (
   <IonRouterOutlet>
-    <Switch>
-      <Route path="/onboarding" component={OnboardingPage} exact />
-      <Route path="/home" component={HomePage} exact />
-      <Route path="/meeting/:id" component={MeetingDetailPage} exact />
-      <Route exact path="/" component={RootRedirect} />
-    </Switch>
+    <Suspense fallback={<LazyFallback />}>
+      <Switch>
+        <Route path="/onboarding" component={OnboardingPage} exact />
+        <Route path="/home" component={HomePage} exact />
+        <Route path="/meeting/:id" component={MeetingDetailPage} exact />
+        <Route exact path="/" component={RootRedirect} />
+      </Switch>
+    </Suspense>
   </IonRouterOutlet>
 );

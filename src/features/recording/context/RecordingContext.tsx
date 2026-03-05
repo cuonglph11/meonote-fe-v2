@@ -1,4 +1,4 @@
-import { createContext, useState, useRef, useCallback, useEffect } from 'react';
+import { createContext, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import type { FC, ReactNode } from 'react';
 import type { RecordingState, RecordingStatus } from '../types';
 import type { Note } from '@/shared/types';
@@ -49,6 +49,8 @@ export const RecordingContext = createContext<RecordingContextValue | null>(null
 
 export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<RecordingState>(initialState);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -416,7 +418,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
   }, [updateStatus, startTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor, checkLowStorage]);
 
   const stopRecording = useCallback(async () => {
-    const { status, duration, noteId } = state;
+    const { status, duration, noteId } = stateRef.current;
     if (!noteId || (status !== 'recording' && status !== 'paused')) return;
 
     if (duration < 10) {
@@ -582,10 +584,10 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
       mr.stop();
     });
-  }, [state, updateStatus, stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote, updatePendingNote, addNote]);
+  }, [updateStatus, stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote, updatePendingNote, addNote]);
 
   const pauseRecording = useCallback(async () => {
-    if (state.status !== 'recording') return;
+    if (stateRef.current.status !== 'recording') return;
 
     try {
       if (isNativeRef.current) {
@@ -601,10 +603,10 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     } catch (err) {
       console.error('[Recording] Failed to pause:', err);
     }
-  }, [state.status, stopTimer, updateStatus]);
+  }, [stopTimer, updateStatus]);
 
   const resumeRecording = useCallback(async () => {
-    if (state.status !== 'paused') return;
+    if (stateRef.current.status !== 'paused') return;
 
     try {
       if (isNativeRef.current) {
@@ -621,21 +623,14 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         showPhoneCallWarning: false,
         interruptionDetected: false,
       }));
-      resumeRecordingLiveActivity(state.noteId).catch(() => {});
+      resumeRecordingLiveActivity(stateRef.current.noteId).catch(() => {});
     } catch (err) {
       console.error('[Recording] Failed to resume:', err);
     }
-    setState(prev => ({
-      ...prev,
-      status: 'recording',
-      showPhoneCallWarning: false,
-      interruptionDetected: false,
-    }));
-    resumeRecordingLiveActivity(state.noteId).catch(() => {});
-  }, [state.status, state.noteId, startTimer]);
+  }, [startTimer]);
 
   const cancelRecording = useCallback(async () => {
-    const { noteId } = state;
+    const { noteId } = stateRef.current;
 
     stopTimer();
     stopAudioLevelMonitor();
@@ -670,7 +665,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     setState(initialState);
-  }, [state, stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote]);
+  }, [stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote]);
 
   const dismissPhoneCallWarning = useCallback(() => {
     setState((prev) => ({ ...prev, showPhoneCallWarning: false }));
@@ -697,20 +692,20 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
   const isActive = state.status !== 'idle' && state.status !== 'cancelled';
 
+  const contextValue = useMemo<RecordingContextValue>(() => ({
+    state,
+    startRecording,
+    stopRecording,
+    pauseRecording,
+    resumeRecording,
+    cancelRecording,
+    dismissPhoneCallWarning,
+    retryUpload,
+    isActive,
+  }), [state, startRecording, stopRecording, pauseRecording, resumeRecording, cancelRecording, dismissPhoneCallWarning, retryUpload, isActive]);
+
   return (
-    <RecordingContext.Provider
-      value={{
-        state,
-        startRecording,
-        stopRecording,
-        pauseRecording,
-        resumeRecording,
-        cancelRecording,
-        dismissPhoneCallWarning,
-        retryUpload,
-        isActive,
-      }}
-    >
+    <RecordingContext.Provider value={contextValue}>
       {children}
     </RecordingContext.Provider>
   );

@@ -1,10 +1,22 @@
+import { Preferences } from '@capacitor/preferences';
+import { Capacitor } from '@capacitor/core';
 import type { Note } from '../../types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://meonote-api-v2.clen.dev/webhook';
+if (import.meta.env.PROD && !BASE_URL.startsWith('https://')) {
+  throw new Error('API base URL must use HTTPS in production');
+}
 
-const TOKEN_KEY = 'anonymous-token';
+const TOKEN_KEY = 'meonote_anonymous_token';
 
-export function getUserToken(): string {
+export async function getUserToken(): Promise<string> {
+  if (Capacitor.isNativePlatform()) {
+    const { value } = await Preferences.get({ key: TOKEN_KEY });
+    if (value) return value;
+    const token = crypto.randomUUID();
+    await Preferences.set({ key: TOKEN_KEY, value: token });
+    return token;
+  }
   let token = localStorage.getItem(TOKEN_KEY);
   if (!token) {
     token = crypto.randomUUID();
@@ -52,7 +64,7 @@ const MAX_RETRIES = 1;
 const RETRY_DELAY_MS = 1_000;
 
 async function request<T>(path: string, options: RequestInit = {}, retries = MAX_RETRIES): Promise<T> {
-  const token = getUserToken();
+  const token = await getUserToken();
 
   const headers: Record<string, string> = {
     'anonymous-token': token,
@@ -79,12 +91,14 @@ async function request<T>(path: string, options: RequestInit = {}, retries = MAX
       throw new Error(`API ${response.status}: ${response.statusText}`);
     }
 
-    // Handle 204 No Content
+    // Handle empty responses
     if (response.status === 204) {
       return undefined as T;
     }
 
-    return response.json() as Promise<T>;
+    const text = await response.text();
+    if (!text) return undefined as T;
+    return JSON.parse(text) as T;
   } catch (err) {
     if (retries > 0 && !(err instanceof DOMException && err.name === 'AbortError' && options.method === 'DELETE')) {
       await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
@@ -112,7 +126,8 @@ export const api = {
     },
 
     list: async (): Promise<Note[]> => {
-      const raw = await request<LegacyNote[]>('/notes');
+      const raw = await request<LegacyNote[] | null>('/notes');
+      if (!Array.isArray(raw)) return [];
       return raw.map(mapNote);
     },
 
@@ -134,7 +149,7 @@ export const api = {
       request<void>(`/note?id=${id}`, { method: 'DELETE' }),
 
     upload: async (id: string, audio: Blob, type: 'partial' | 'final' = 'final'): Promise<Note> => {
-      const token = getUserToken();
+      const token = await getUserToken();
       const formData = new FormData();
 
       // Detect extension from blob MIME type
@@ -163,7 +178,7 @@ export const api = {
     },
 
     downloadAudio: async (fileUuid: string): Promise<Blob> => {
-      const token = getUserToken();
+      const token = await getUserToken();
       const response = await fetch(
         `${BASE_URL}/file/download?fileUuid=${fileUuid}`,
         {

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Theme, Language, AppSettings } from '../types';
@@ -19,7 +19,11 @@ export const SettingsContext = createContext<SettingsContextValue | null>(null);
 export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { i18n } = useTranslation();
   const [settings, setSettings] = useState<AppSettings>(() => settingsService.getSettings());
-  const [userToken] = useState<string>(() => getUserToken());
+  const [userToken, setUserToken] = useState<string>('');
+
+  useEffect(() => {
+    getUserToken().then(setUserToken);
+  }, []);
 
   // Apply theme on mount and when system preference changes
   useEffect(() => {
@@ -62,10 +66,12 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     window.location.reload();
   }, []);
 
+  const contextValue = useMemo<SettingsContextValue>(() => ({
+    settings, userToken, setTheme, setLanguage, completeOnboarding, clearAllData,
+  }), [settings, userToken, setTheme, setLanguage, completeOnboarding, clearAllData]);
+
   return (
-    <SettingsContext.Provider
-      value={{ settings, userToken, setTheme, setLanguage, completeOnboarding, clearAllData }}
-    >
+    <SettingsContext.Provider value={contextValue}>
       {children}
     </SettingsContext.Provider>
   );

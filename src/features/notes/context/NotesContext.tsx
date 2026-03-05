@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useRef } from 'react';
+import { createContext, useState, useCallback, useRef, useMemo } from 'react';
 import type { FC, ReactNode } from 'react';
 import type { Note, PendingNote } from '../types';
 import { api } from '@/shared/lib/api/client';
@@ -94,24 +94,24 @@ export const NotesProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setError(null);
   }, []);
 
+  const contextValue = useMemo<NotesContextValue>(() => ({
+    notes,
+    pendingNotes,
+    loading,
+    error,
+    fetchNotes,
+    addNote,
+    updateNote,
+    removeNote,
+    addPendingNote,
+    updatePendingNote,
+    removePendingNote,
+    retryNoteLoad,
+    dismissError,
+  }), [notes, pendingNotes, loading, error, fetchNotes, addNote, updateNote, removeNote, addPendingNote, updatePendingNote, removePendingNote, retryNoteLoad, dismissError]);
+
   return (
-    <NotesContext.Provider
-      value={{
-        notes,
-        pendingNotes,
-        loading,
-        error,
-        fetchNotes,
-        addNote,
-        updateNote,
-        removeNote,
-        addPendingNote,
-        updatePendingNote,
-        removePendingNote,
-        retryNoteLoad,
-        dismissError,
-      }}
-    >
+    <NotesContext.Provider value={contextValue}>
       {children}
     </NotesContext.Provider>
   );

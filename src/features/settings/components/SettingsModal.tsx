@@ -104,9 +104,9 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <div className="animate-fade-in">
             {/* Preferences Section */}
             <div className="mb-6">
-              <p className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+              <h3 className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
                 {t('settings.title')}
-              </p>
+              </h3>
               <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
                 <IonList>
                   <IonItem data-testid="settings-language-item">
@@ -149,9 +149,9 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
             {/* Legal Section */}
             <div className="mb-6">
-              <p className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
-                Legal
-              </p>
+              <h3 className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+                {t('settings.legal')}
+              </h3>
               <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
                 <IonList>
                   <IonItem
@@ -187,9 +187,9 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
             {/* About Section */}
             <div className="mb-6">
-              <p className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
-                About
-              </p>
+              <h3 className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+                {t('settings.about')}
+              </h3>
               <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
                 <IonList>
                   <IonItem data-testid="settings-userid-item">
@@ -237,11 +237,11 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     <Trash2 size={16} className="text-red-500 dark:text-red-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-heading font-semibold text-red-700 dark:text-red-300">
-                      Danger Zone
-                    </p>
+                    <h3 className="text-sm font-heading font-semibold text-red-700 dark:text-red-300">
+                      {t('settings.dangerZone')}
+                    </h3>
                     <p className="text-xs text-red-500/70 dark:text-red-400/60 mt-0.5">
-                      This action cannot be undone
+                      {t('settings.cannotBeUndone')}
                     </p>
                   </div>
                 </div>

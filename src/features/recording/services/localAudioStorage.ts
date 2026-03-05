@@ -2,6 +2,13 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { isNativePlatform } from '@/shared/lib/platform';
 
 const AUDIO_DIRECTORY = 'recordings';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function validateNoteId(noteId: string): void {
+  if (!UUID_REGEX.test(noteId)) {
+    throw new Error('Invalid noteId format');
+  }
+}
 
 async function ensureDirectoryExists(): Promise<void> {
   try {
@@ -19,6 +26,7 @@ async function ensureDirectoryExists(): Promise<void> {
 
 export const localAudioStorage = {
   async saveAudioBlob(noteId: string, blob: Blob): Promise<string> {
+    validateNoteId(noteId);
     if (!isNativePlatform()) {
       console.log('[LocalAudioStorage] Skipping save on web platform');
       return '';
@@ -29,6 +37,7 @@ export const localAudioStorage = {
   },
 
   async saveAudioFile(noteId: string, base64Data: string): Promise<string> {
+    validateNoteId(noteId);
     await ensureDirectoryExists();
     const filename = `${noteId}.m4a`;
     const path = `${AUDIO_DIRECTORY}/${filename}`;
@@ -44,6 +53,7 @@ export const localAudioStorage = {
   },
 
   async hasAudioFile(noteId: string): Promise<boolean> {
+    validateNoteId(noteId);
     if (!isNativePlatform()) return false;
     try {
       await Filesystem.stat({
@@ -57,6 +67,7 @@ export const localAudioStorage = {
   },
 
   async getAudioFileUri(noteId: string): Promise<string | null> {
+    validateNoteId(noteId);
     try {
       const result = await Filesystem.getUri({
         path: `${AUDIO_DIRECTORY}/${noteId}.m4a`,
@@ -69,6 +80,7 @@ export const localAudioStorage = {
   },
 
   async readAudioBlob(noteId: string): Promise<Blob | null> {
+    validateNoteId(noteId);
     try {
       const result = await Filesystem.readFile({
         path: `${AUDIO_DIRECTORY}/${noteId}.m4a`,
@@ -98,6 +110,7 @@ export const localAudioStorage = {
   },
 
   async deleteAudioFile(noteId: string): Promise<boolean> {
+    validateNoteId(noteId);
     try {
       await Filesystem.deleteFile({
         path: `${AUDIO_DIRECTORY}/${noteId}.m4a`,

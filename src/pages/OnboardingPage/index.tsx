@@ -14,6 +14,7 @@ import { useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Moon } from 'lucide-react';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { APP_VERSION } from '@/shared/lib/appVersion';
 import type { Language, Theme } from '@/shared/types';
 
 export const OnboardingPage: FC = () => {
@@ -157,7 +158,7 @@ export const OnboardingPage: FC = () => {
 
           {/* Footer — subtle brand mark */}
           <p className="text-[10px] text-warm-text-secondary/40 dark:text-dark-text-secondary/30 mt-8 font-mono tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            MeoNote v1.0
+            MeoNote v{APP_VERSION}
           </p>
         </div>
       </IonContent>

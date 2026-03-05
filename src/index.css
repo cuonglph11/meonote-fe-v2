@@ -108,10 +108,30 @@ html.light {
     --ion-color-primary-contrast: #ffffff;
     --ion-color-primary-shade: #cc6544;
     --ion-color-primary-tint: #ea815f;
+    --ion-color-danger: #ef4444;
+    --ion-color-danger-rgb: 239, 68, 68;
+    --ion-color-danger-contrast: #ffffff;
+    --ion-color-danger-shade: #dc2626;
+    --ion-color-danger-tint: #f87171;
     --ion-item-background: #1C1C20;
     --ion-toolbar-background: #1C1C20;
     --ion-tab-bar-background: #1C1C20;
     --ion-card-background: #1C1C20;
+
+    --ion-background-color-step-50: #19191c;
+    --ion-background-color-step-100: #212125;
+    --ion-background-color-step-150: #29292e;
+    --ion-background-color-step-200: #313137;
+    --ion-background-color-step-250: #3a3a40;
+    --ion-background-color-step-300: #434349;
+    --ion-background-color-step-350: #4c4c53;
+    --ion-text-color-step-50: #ebe6e1;
+    --ion-text-color-step-100: #e1dcd7;
+    --ion-text-color-step-150: #d7d2cd;
+    --ion-text-color-step-200: #cdc8c3;
+    --ion-text-color-step-250: #c3beb9;
+    --ion-text-color-step-300: #b9b4af;
+    --ion-text-color-step-350: #afaaa5;
   }
 }
 
@@ -125,10 +145,31 @@ html.dark {
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-shade: #cc6544;
   --ion-color-primary-tint: #ea815f;
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-shade: #dc2626;
+  --ion-color-danger-tint: #f87171;
   --ion-item-background: #1C1C20;
   --ion-toolbar-background: #1C1C20;
   --ion-tab-bar-background: #1C1C20;
   --ion-card-background: #1C1C20;
+
+  /* Stepped background colors for overlays & subtle contrast */
+  --ion-background-color-step-50: #19191c;
+  --ion-background-color-step-100: #212125;
+  --ion-background-color-step-150: #29292e;
+  --ion-background-color-step-200: #313137;
+  --ion-background-color-step-250: #3a3a40;
+  --ion-background-color-step-300: #434349;
+  --ion-background-color-step-350: #4c4c53;
+  --ion-text-color-step-50: #ebe6e1;
+  --ion-text-color-step-100: #e1dcd7;
+  --ion-text-color-step-150: #d7d2cd;
+  --ion-text-color-step-200: #cdc8c3;
+  --ion-text-color-step-250: #c3beb9;
+  --ion-text-color-step-300: #b9b4af;
+  --ion-text-color-step-350: #afaaa5;
 }
 
 /* ===== Global Typography ===== */
@@ -317,6 +358,114 @@ html.dark .pending-note-item ion-note {
   --ripple-color: transparent;
   height: auto;
   margin: 0;
+}
+
+/* ===== Alert & Select Dialog Styling ===== */
+
+/* Light mode base */
+ion-alert .alert-button.alert-button-role-destructive {
+  color: #dc2626;
+}
+
+ion-alert .alert-button.alert-button-role-cancel {
+  color: #78716C;
+}
+
+ion-alert .alert-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+ion-alert .alert-input {
+  border-radius: 10px;
+}
+
+/* ===== Alert & Select Dialog — Dark Mode ===== */
+html.dark ion-alert {
+  --background: #252529;
+  --max-width: 320px;
+}
+
+html.dark ion-alert .alert-wrapper {
+  background: var(--background);
+  border-radius: 14px;
+}
+
+html.dark ion-alert .alert-head {
+  padding-bottom: 8px;
+}
+
+html.dark ion-alert .alert-title {
+  color: #F5F0EB;
+}
+
+html.dark ion-alert .alert-message {
+  color: #B0A99F;
+}
+
+html.dark ion-alert .alert-button {
+  color: #E8734D;
+}
+
+html.dark ion-alert .alert-button.alert-button-role-cancel {
+  color: #B0A99F;
+}
+
+html.dark ion-alert .alert-button.alert-button-role-destructive {
+  color: #ef4444;
+}
+
+html.dark ion-alert .alert-input {
+  background: #1C1C20;
+  color: #F5F0EB;
+  border-color: #3a3a40;
+  caret-color: #E8734D;
+}
+
+html.dark ion-alert .alert-input::placeholder {
+  color: #78716C;
+}
+
+html.dark ion-alert .alert-radio-label,
+html.dark ion-alert .alert-checkbox-label {
+  color: #F5F0EB;
+}
+
+html.dark ion-alert .alert-radio-icon {
+  border-color: #3a3a40;
+}
+
+html.dark ion-alert [aria-checked="true"] .alert-radio-icon {
+  border-color: #E8734D;
+}
+
+html.dark ion-alert [aria-checked="true"] .alert-radio-inner {
+  background: #E8734D;
+}
+
+html.dark ion-alert .alert-tappable {
+  background: transparent;
+}
+
+html.dark ion-alert .alert-button-group {
+  border-top: 0.55px solid #3a3a40;
+}
+
+html.dark ion-alert .alert-button-inner {
+  justify-content: center;
+}
+
+/* Action sheet — used by some IonSelect interfaces */
+html.dark ion-action-sheet {
+  --background: #252529;
+  --button-background: #252529;
+  --button-background-selected: #313137;
+  --button-color: #F5F0EB;
+  --color: #F5F0EB;
+}
+
+html.dark ion-action-sheet .action-sheet-cancel {
+  background: #1C1C20;
 }
 
 /* ===== Dark mode text overrides for Ionic shadow DOM ===== */

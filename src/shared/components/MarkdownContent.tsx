@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { FC } from 'react';
 import Markdown from 'react-markdown';
 
@@ -7,14 +8,14 @@ interface MarkdownContentProps {
   'data-testid'?: string;
 }
 
-export const MarkdownContent: FC<MarkdownContentProps> = ({
+export const MarkdownContent: FC<MarkdownContentProps> = memo(({
   content,
   className = '',
   'data-testid': testId,
 }) => {
   return (
-    <div className={`markdown-body ${className}`} data-testid={testId}>
+    <div className={`markdown-body max-w-prose ${className}`} data-testid={testId}>
       <Markdown>{content}</Markdown>
     </div>
   );
-};
+});

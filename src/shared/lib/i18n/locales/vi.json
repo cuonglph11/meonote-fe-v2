@@ -104,7 +104,11 @@
     "clearDataConfirmMessage": "Thao tác này sẽ xóa tất cả ghi chú và đặt lại ứng dụng. Không thể hoàn tác.",
     "clearDataSuccess": "Đã xóa tất cả dữ liệu",
     "languageEn": "English",
-    "languageVi": "Tiếng Việt"
+    "languageVi": "Tiếng Việt",
+    "legal": "Pháp lý",
+    "about": "Giới thiệu",
+    "dangerZone": "Vùng nguy hiểm",
+    "cannotBeUndone": "Hành động này không thể hoàn tác"
   },
   "error": {
     "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối của bạn.",

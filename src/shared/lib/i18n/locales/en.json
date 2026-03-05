@@ -104,7 +104,11 @@
     "clearDataConfirmMessage": "This will delete all your notes and reset the app. This action cannot be undone.",
     "clearDataSuccess": "All data cleared",
     "languageEn": "English",
-    "languageVi": "Tiếng Việt"
+    "languageVi": "Tiếng Việt",
+    "legal": "Legal",
+    "about": "About",
+    "dangerZone": "Danger Zone",
+    "cannotBeUndone": "This action cannot be undone"
   },
   "error": {
     "networkError": "Network error. Please check your connection.",

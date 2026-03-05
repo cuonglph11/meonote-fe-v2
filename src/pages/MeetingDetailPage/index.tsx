@@ -28,6 +28,8 @@ import { MarkdownContent } from '@/shared/components/MarkdownContent';
 import { api } from '@/shared/lib/api/client';
 import type { Note } from '@/shared/types';
 
+const MAX_SUMMARY_LENGTH = 50_000;
+
 type Tab = 'summary' | 'transcription';
 
 export const MeetingDetailPage: FC = () => {
@@ -86,7 +88,7 @@ export const MeetingDetailPage: FC = () => {
 
   const handleSaveSummary = async () => {
     if (!note) return;
-    const newContent = editSummaryValue;
+    const newContent = editSummaryValue.slice(0, MAX_SUMMARY_LENGTH);
     setIsEditingSummary(false);
     setNote((prev) => (prev ? { ...prev, summarizedContent: newContent } : prev));
     updateNote(note.id, { summarizedContent: newContent });
@@ -178,7 +180,7 @@ export const MeetingDetailPage: FC = () => {
             <IonBackButton defaultHref="/home" data-testid="back-button" />
           </IonButtons>
 
-          <IonTitle data-testid="note-title">
+          <IonTitle data-testid="note-title" className="line-clamp-1">
             {getDisplayTitle(note)}
           </IonTitle>
 
@@ -279,7 +281,7 @@ export const MeetingDetailPage: FC = () => {
                   </div>
                 </div>
                 <textarea
-                  className="w-full p-4 bg-transparent text-warm-text dark:text-dark-text resize-y outline-none font-mono text-sm leading-relaxed min-h-[60vh] max-h-[80vh]"
+                  className="w-full p-4 bg-transparent text-warm-text dark:text-dark-text resize-y outline-none font-mono text-sm leading-relaxed min-h-[40vh] md:min-h-[60vh] max-h-[80vh]"
                   value={editSummaryValue}
                   onChange={(e) => setEditSummaryValue(e.target.value)}
                   autoFocus
@@ -341,7 +343,7 @@ export const MeetingDetailPage: FC = () => {
 
       {/* Scroll to top button */}
       {showScrollTop && (
-        <div className="fixed bottom-20 right-4 z-40">
+        <div className="fixed bottom-20 right-4 pb-[env(safe-area-inset-bottom)] pr-[env(safe-area-inset-right)] z-40">
           <IonButton
             shape="round"
             onClick={scrollToTop}

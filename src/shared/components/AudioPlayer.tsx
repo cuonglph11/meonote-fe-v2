@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import type { FC } from 'react';
-import { IonButton, IonIcon, IonProgressBar } from '@ionic/react';
+import { IonButton, IonProgressBar } from '@ionic/react';
+import { Play, Pause } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDuration } from '@/features/notes/services/notesService';
 import { getUserToken } from '@/shared/lib/api/client';
@@ -31,8 +32,8 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
     setLoading(true);
     setHasError(false);
 
-    const token = getUserToken();
-    fetch(audioUrl, { headers: { 'anonymous-token': token } })
+    getUserToken().then((token) =>
+    fetch(audioUrl, { headers: { 'anonymous-token': token } }))
       .then((res) => {
         if (!res.ok) throw new Error(`Download failed: ${res.status}`);
         return res.blob();
@@ -174,7 +175,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
           aria-label={isPlaying ? t('detail.pause') : t('detail.play')}
           data-testid="audio-play-button"
         >
-          <IonIcon name={isPlaying ? 'pause' : 'play'} slot="icon-only" />
+          {isPlaying ? <Pause size={20} /> : <Play size={20} />}
         </IonButton>
 
         <div className="flex-1">

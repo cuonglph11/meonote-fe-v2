@@ -41,14 +41,14 @@ class RecordingManager {
     if (this.state === 'recording') {
       this.state = 'paused';
       this.pauseStartTime = Date.now();
-      console.log('[RecordingManager] Synced to paused (native interruption)');
+      if (import.meta.env.DEV) console.log('[RecordingManager] Synced to paused (native interruption)');
     }
   }
 
   setAppBackgrounded(value: boolean): void {
     if (this.state === 'recording') {
       this.appWasBackgrounded = value;
-      console.log(`[RecordingManager] App backgrounded flag set to: ${value}`);
+      if (import.meta.env.DEV) console.log(`[RecordingManager] App backgrounded flag set to: ${value}`);
     }
   }
 
@@ -64,7 +64,7 @@ class RecordingManager {
       if (hasInterruption) {
         this.state = 'paused';
         this.pauseStartTime = Date.now();
-        console.log('[RecordingManager] Interruption detected via getCurrentStatus');
+        if (import.meta.env.DEV) console.log('[RecordingManager] Interruption detected via getCurrentStatus');
       }
 
       return { hasInterruption, gap: 0 };
@@ -89,7 +89,7 @@ class RecordingManager {
       throw new Error('Recording already in progress');
     }
 
-    console.log('[RecordingManager] Starting recording for noteId:', noteId);
+    if (import.meta.env.DEV) console.log('[RecordingManager] Starting recording for noteId:', noteId);
 
     await Recorder.startRecording({
       directory: 'DATA',
@@ -103,7 +103,7 @@ class RecordingManager {
     this.pauseStartTime = null;
     this.appWasBackgrounded = false;
 
-    console.log('[RecordingManager] Recording started');
+    if (import.meta.env.DEV) console.log('[RecordingManager] Recording started');
   }
 
   async stop(): Promise<RecordingResult> {
@@ -117,7 +117,7 @@ class RecordingManager {
       this.pauseStartTime = null;
     }
 
-    console.log('[RecordingManager] Stopping recording');
+    if (import.meta.env.DEV) console.log('[RecordingManager] Stopping recording');
     const result = await Recorder.stopRecording();
 
     const wallClockMs = this.startTime ? Date.now() - this.startTime : 0;
@@ -125,15 +125,17 @@ class RecordingManager {
     const actualDurationMs = result.value?.msDuration || 0;
     const gap = Math.max(0, expectedDurationMs - actualDurationMs);
 
-    console.log('[RecordingManager] Recording stopped');
-    console.log('  Expected duration:', expectedDurationMs, 'ms');
-    console.log('  Actual duration:', actualDurationMs, 'ms');
-    console.log('  Gap:', gap, 'ms');
+    if (import.meta.env.DEV) {
+      console.log('[RecordingManager] Recording stopped');
+      console.log('  Expected duration:', expectedDurationMs, 'ms');
+      console.log('  Actual duration:', actualDurationMs, 'ms');
+      console.log('  Gap:', gap, 'ms');
+    }
 
     let interruption: InterruptionType = 'none';
     if (gap > this.INTERRUPTION_GAP_THRESHOLD_MS) {
       interruption = 'maybeMicTaken';
-      console.log('[RecordingManager] Interruption detected: gap indicates mic was taken');
+      if (import.meta.env.DEV) console.log('[RecordingManager] Interruption detected: gap indicates mic was taken');
     }
 
     this.state = 'idle';
@@ -159,7 +161,7 @@ class RecordingManager {
 
   async pause(): Promise<void> {
     if (this.state === 'paused') {
-      console.log('[RecordingManager] Already paused');
+      if (import.meta.env.DEV) console.log('[RecordingManager] Already paused');
       return;
     }
     if (this.state !== 'recording') return;
@@ -168,13 +170,13 @@ class RecordingManager {
       await Recorder.pauseRecording();
       this.state = 'paused';
       this.pauseStartTime = Date.now();
-      console.log('[RecordingManager] Recording paused');
+      if (import.meta.env.DEV) console.log('[RecordingManager] Recording paused');
     } catch (error) {
       const status = await Recorder.getCurrentStatus();
       if (status.status === 'PAUSED') {
         this.state = 'paused';
         this.pauseStartTime = Date.now();
-        console.log('[RecordingManager] Recording already paused, state synced');
+        if (import.meta.env.DEV) console.log('[RecordingManager] Recording already paused, state synced');
       } else {
         throw error;
       }
@@ -189,14 +191,14 @@ class RecordingManager {
       this.pauseStartTime = null;
     }
     this.state = 'recording';
-    console.log('[RecordingManager] Recording resumed');
+    if (import.meta.env.DEV) console.log('[RecordingManager] Recording resumed');
   }
 
   async cleanupOrphaned(): Promise<void> {
     try {
       const result = await Recorder.cleanupOrphanedRecording();
       if (result.hadOrphan) {
-        console.log('[RecordingManager] Cleaned up orphaned recording:', result.deletedPath);
+        if (import.meta.env.DEV) console.log('[RecordingManager] Cleaned up orphaned recording:', result.deletedPath);
       }
     } catch (error) {
       console.error('[RecordingManager] Error cleaning up orphaned recording:', error);
@@ -209,7 +211,7 @@ class RecordingManager {
     this.pauseStartTime = null;
     this.totalPausedMs = 0;
     this.appWasBackgrounded = false;
-    console.log('[RecordingManager] Reset');
+    if (import.meta.env.DEV) console.log('[RecordingManager] Reset');
   }
 }
 

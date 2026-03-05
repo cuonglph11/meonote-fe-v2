@@ -36,6 +36,8 @@ import { groupNotesByDate, filterNotes, formatDuration } from '@/features/notes/
 import { api } from '@/shared/lib/api/client';
 import type { Note } from '@/shared/types';
 
+const MAX_TITLE_LENGTH = 200;
+
 export const HomePage: FC = () => {
   const { t } = useTranslation();
   const history = useHistory();
@@ -113,7 +115,7 @@ export const HomePage: FC = () => {
       return;
     }
     const id = renameTargetId;
-    const newTitle = renameValue.trim();
+    const newTitle = renameValue.trim().slice(0, MAX_TITLE_LENGTH);
     setRenameTargetId(null);
     updateNote(id, { title: newTitle });
     try {
@@ -187,7 +189,7 @@ export const HomePage: FC = () => {
   };
 
   const renderNoteItem = (note: Note) => {
-    const statusColor = note.status === 'failed' ? 'bg-red-500' : note.status === 'pending' ? 'bg-gold' : 'bg-terracotta/30 dark:bg-terracotta-light/30';
+    const statusColor = note.status === 'failed' ? 'bg-terracotta dark:bg-terracotta-light' : note.status === 'pending' ? 'bg-gold' : 'bg-terracotta/30 dark:bg-terracotta-light/30';
 
     return (
       <IonItemSliding key={note.id} data-testid={`note-item-${note.id}`}>
@@ -200,7 +202,7 @@ export const HomePage: FC = () => {
           <div className={`w-[3px] self-stretch rounded-full mr-3.5 flex-shrink-0 ${statusColor}`} />
           <IonLabel>
             <h2 className="font-heading font-medium text-[0.9375rem] leading-snug text-warm-text dark:text-dark-text">{getDisplayTitle(note)}</h2>
-            <p style={{ fontSize: '12px', color: '#78716C', marginTop: '2px' }}>
+            <p className="text-xs text-warm-text-secondary dark:text-dark-text-secondary mt-0.5">
               {new Date(note.createdAt).toLocaleTimeString(settings.language === 'vi' ? 'vi-VN' : 'en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -254,10 +256,10 @@ export const HomePage: FC = () => {
         <div className="sticky top-0 z-10 px-4 py-2 bg-warm-ivory/95 dark:bg-dark-bg/95 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-terracotta dark:bg-terracotta-light opacity-70" />
-            <p className="text-[11px] font-heading font-semibold uppercase tracking-widest" style={{ color: 'var(--ion-text-color)', opacity: 0.5 }}>
+            <p className="text-[11px] font-heading font-semibold uppercase tracking-widest text-warm-text/50 dark:text-dark-text/50">
               {title}
             </p>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-stone-100 dark:bg-dark-surface-elevated" style={{ color: 'var(--ion-text-color)', opacity: 0.4 }}>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-stone-100 dark:bg-dark-surface-elevated text-warm-text/40 dark:text-dark-text/40">
               {sectionNotes.length}
             </span>
           </div>
@@ -275,7 +277,7 @@ export const HomePage: FC = () => {
             {/* Left: Logo + Title + Date */}
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl overflow-hidden shadow-sm ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0">
-                <img src="/logo_meonote.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
+                <img src="/logo_meonote.png" alt="MeoNote" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col">
                 <h1 className="text-lg font-heading font-bold tracking-tight text-warm-text dark:text-dark-text leading-none">
@@ -365,8 +367,16 @@ export const HomePage: FC = () => {
 
         {/* Loading */}
         {loading && notes.length === 0 && (
-          <div className="flex items-center justify-center py-12" data-testid="loading-state">
-            <p className="text-warm-text-secondary dark:text-dark-text-secondary">{t('common.loading')}</p>
+          <div className="px-4 py-4 space-y-3" data-testid="loading-state">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-3.5 px-4 py-4 bg-warm-surface dark:bg-dark-surface rounded-xl animate-pulse">
+                <div className="w-[3px] h-10 rounded-full bg-stone-200 dark:bg-stone-700" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-700" />
+                  <div className="h-3 w-1/3 rounded bg-stone-100 dark:bg-dark-surface-elevated" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -413,7 +423,7 @@ export const HomePage: FC = () => {
         )}
 
         {/* FAB Record button */}
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+        <IonFab vertical="bottom" horizontal="end" slot="fixed" style={{ bottom: 'max(16px, env(safe-area-inset-bottom))' }}>
           <IonFabButton
             onClick={handleRecord}
             disabled={isActive}

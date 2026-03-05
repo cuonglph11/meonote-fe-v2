@@ -6,9 +6,11 @@ import {
   IonAlert,
 } from '@ionic/react';
 import { useTranslation } from 'react-i18next';
-import { Mic, Pause, Play, Square, X } from 'lucide-react';
+import { AlertTriangle, Mic, Pause, PhoneCall, Play, Square, X } from 'lucide-react';
 import { useRecording } from '../hooks/useRecording';
 import { formatDuration } from '@/features/notes/services/notesService';
+
+const VISUALIZER_WEIGHTS = [0.6, 0.8, 1.0, 0.9, 0.7, 1.0, 0.8, 0.5, 0.9, 0.7, 1.0, 0.6] as const;
 
 export const RecordingUI: FC = () => {
   const { t } = useTranslation();
@@ -46,7 +48,7 @@ export const RecordingUI: FC = () => {
         className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 backdrop-blur-sm z-50 flex items-end justify-center pb-safe"
         data-testid="recording-ui"
       >
-        <div className="bg-warm-surface dark:bg-dark-surface rounded-t-[28px] w-full max-w-md p-6 flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up">
+        <div className="bg-warm-surface dark:bg-dark-surface rounded-t-[28px] w-full max-w-md p-6 pb-safe flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up" style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom))` }}>
 
           {/* Handle bar */}
           <div className="w-10 h-1 rounded-full bg-stone-200 dark:bg-stone-700 -mt-1 mb-1" />
@@ -101,8 +103,8 @@ export const RecordingUI: FC = () => {
 
             {/* Audio level visualizer — multi-bar */}
             {(isRecording || isPaused) && (
-              <div className="flex items-end gap-[3px] h-5" data-testid="audio-level-bar">
-                {[0.6, 0.8, 1.0, 0.9, 0.7, 1.0, 0.8, 0.5, 0.9, 0.7, 1.0, 0.6].map((weight, i) => {
+              <div className="flex items-end gap-[3px] h-5" aria-label="Audio level indicator" role="meter" data-testid="audio-level-bar">
+                {VISUALIZER_WEIGHTS.map((weight, i) => {
                   const level = isPaused ? 0.05 : Math.min(state.audioLevel * 3, 1) * weight;
                   return (
                     <div
@@ -140,9 +142,10 @@ export const RecordingUI: FC = () => {
           {/* No audio warning */}
           {state.showNoAudioWarning && (
             <div
-              className="w-full bg-terracotta/8 dark:bg-terracotta-light/8 text-terracotta dark:text-terracotta-light text-sm rounded-xl p-3 text-center border border-terracotta/15 dark:border-terracotta-light/15"
+              className="w-full bg-terracotta/8 dark:bg-terracotta-light/8 text-terracotta dark:text-terracotta-light text-sm rounded-xl p-3 border border-terracotta/15 dark:border-terracotta-light/15 flex items-center justify-center gap-2"
               data-testid="no-audio-warning"
             >
+              <AlertTriangle size={16} className="flex-shrink-0" />
               {t('recording.noAudioDetected')}
             </div>
           )}
@@ -150,9 +153,10 @@ export const RecordingUI: FC = () => {
           {/* Phone call warning */}
           {state.showPhoneCallWarning && (
             <div
-              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 text-center border border-gold/15"
+              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 border border-gold/15 flex items-center justify-center gap-2"
               data-testid="phone-call-warning"
             >
+              <PhoneCall size={16} className="flex-shrink-0" />
               {t('recording.phoneCallWarning')}
             </div>
           )}
@@ -160,9 +164,10 @@ export const RecordingUI: FC = () => {
           {/* Low storage warning */}
           {state.showLowStorageWarning && (
             <div
-              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 text-center border border-gold/15"
+              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 border border-gold/15 flex items-center justify-center gap-2"
               data-testid="low-storage-warning"
             >
+              <AlertTriangle size={16} className="flex-shrink-0" />
               {t('recording.lowStorage')}
             </div>
           )}
