@@ -7,6 +7,8 @@ import { recordingService } from '../services/recordingService';
 import { recordingManager } from '../services/recordingManager';
 import { localAudioStorage } from '../services/localAudioStorage';
 import { isNativePlatform } from '@/shared/lib/platform';
+import { useWakeLock } from '@/shared/hooks/useWakeLock';
+import { useNotes } from '@/features/notes/hooks/useNotes';
 import {
   startRecordingLiveActivity,
   pauseRecordingLiveActivity,
@@ -15,9 +17,8 @@ import {
   cancelRecordingLiveActivity,
   reconcileLiveActivities,
 } from '../services/liveActivityService';
-import { useWakeLock } from '@/shared/hooks/useWakeLock';
-import { useNotes } from '@/features/notes/hooks/useNotes';
 import { App } from '@capacitor/app';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface RecordingContextValue {
   state: RecordingState;
@@ -58,10 +59,11 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
   const audioTrackRef = useRef<MediaStreamTrack | null>(null);
   const storageCheckRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isNativeRef = useRef(false);
+  const durationRef = useRef(0);
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock();
   const { addPendingNote, removePendingNote, updatePendingNote, addNote } = useNotes();
 
-  // Cleanup orphaned recordings and reconcile Live Activities on mount
+  // Cleanup orphaned recording and Live Activities on mount
   useEffect(() => {
     const orphaned = recordingService.getOrphanedRecording();
     if (orphaned) {
@@ -74,36 +76,44 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     reconcileLiveActivities().catch(() => {});
   }, []);
 
-  // App state change listener — detect interruptions when returning from background
+  // App state change listener: detect background/foreground transitions on native
   useEffect(() => {
     if (!isNativePlatform()) return;
 
-    let handle: { remove: () => Promise<void> } | null = null;
+    const listener = App.addListener('appStateChange', async ({ isActive: appIsActive }) => {
+      if (!isNativeRef.current) return;
 
-    App.addListener('appStateChange', async ({ isActive: appIsActive }) => {
-      if (appIsActive && isNativeRef.current) {
-        try {
-          const { hasInterruption } = await recordingManager.checkForInterruption();
-          if (hasInterruption) {
-            setState((prev) => ({
+      if (!appIsActive) {
+        recordingManager.setAppBackgrounded(true);
+      } else {
+        // App returning to foreground -- check if native recorder was interrupted
+        recordingManager.setAppBackgrounded(false);
+        const { hasInterruption } = await recordingManager.checkForInterruption();
+        if (hasInterruption) {
+          setState(prev => {
+            if (prev.status !== 'recording') return prev;
+            return {
               ...prev,
               status: 'paused',
               showPhoneCallWarning: true,
               interruptionDetected: true,
-            }));
-          }
-        } catch {
-          // Ignore check failures
+            };
+          });
+          pauseRecordingLiveActivity(durationRef.current).catch(() => {});
         }
       }
-    }).then((h) => { handle = h; });
+    });
 
-    return () => { handle?.remove(); };
+    return () => { listener.then(l => l.remove()); };
   }, []);
 
   const startTimer = useCallback(() => {
     timerRef.current = setInterval(() => {
-      setState((prev) => ({ ...prev, duration: prev.duration + 1 }));
+      setState((prev) => {
+        const newDuration = prev.duration + 1;
+        durationRef.current = newDuration;
+        return { ...prev, duration: newDuration };
+      });
     }, 1000);
   }, []);
 
@@ -134,6 +144,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
   const startAudioLevelMonitor = useCallback(async (stream: MediaStream) => {
     try {
       const audioContext = new AudioContext();
+
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
       }
@@ -162,15 +173,20 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
         setState((prev) => {
           const newState = { ...prev, audioLevel: avg };
+
           if (avg < 0.01) {
             silentSecondsRef.current += 0.2;
           } else {
             silentSecondsRef.current = 0;
-            if (prev.showNoAudioWarning) newState.showNoAudioWarning = false;
+            if (prev.showNoAudioWarning) {
+              newState.showNoAudioWarning = false;
+            }
           }
+
           if (silentSecondsRef.current >= 5 && !prev.showNoAudioWarning) {
             newState.showNoAudioWarning = true;
           }
+
           return newState;
         });
       }, 200);
@@ -184,7 +200,8 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const { quota, usage } = await navigator.storage.estimate();
       if (!quota || !usage) return false;
-      return (quota - usage) < 50 * 1024 * 1024;
+      const remaining = quota - usage;
+      return remaining < 50 * 1024 * 1024;
     } catch {
       return false;
     }
@@ -197,42 +214,25 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, []);
 
-  // Helper: create a failed note entry
-  const createFailedNote = useCallback((noteId: string, duration: number) => {
-    recordingService.clearOrphanedRecording();
-    removePendingNote(noteId);
-    addNote({
-      id: noteId,
-      title: `Recording ${new Date().toLocaleTimeString()}`,
-      duration,
-      status: 'failed',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  }, [removePendingNote, addNote]);
-
-  // ─── Start Recording ────────────────────────────────────────────────
   const startRecording = useCallback(async () => {
-    if (!navigator.onLine) return 'offline';
+    if (!navigator.onLine) {
+      return 'offline';
+    }
 
-    updateStatus('requesting');
     const useNative = isNativePlatform();
     isNativeRef.current = useNative;
 
+    updateStatus('requesting');
+
     if (useNative) {
-      // ─── NATIVE PATH (iOS) ──────────────────────────────────────
-      try {
-        const hasPermission = await recordingManager.checkPermissions();
-        if (!hasPermission) {
-          const granted = await recordingManager.requestPermissions();
-          if (!granted) {
-            updateStatus('idle');
-            return 'permission_denied';
-          }
+      // --- NATIVE PATH: iOS via RecorderPlugin ---
+      const hasPermission = await recordingManager.checkPermissions();
+      if (!hasPermission) {
+        const granted = await recordingManager.requestPermissions();
+        if (!granted) {
+          updateStatus('idle');
+          return 'permission_denied';
         }
-      } catch {
-        updateStatus('idle');
-        return 'permission_denied';
       }
 
       let note: Note;
@@ -253,8 +253,6 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         updateStatus('idle');
         return 'init_failed';
       }
-
-      startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
 
       setState({
         status: 'recording',
@@ -278,10 +276,12 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
       startTimer();
       acquireWakeLock();
+      startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
+
       return 'started';
     }
 
-    // ─── WEB PATH (Browser) ────────────────────────────────────────
+    // --- WEB PATH: Browser via MediaRecorder ---
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -310,6 +310,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     recordingService.setOrphanedRecording(note.id);
+
     streamRef.current = stream;
     chunksRef.current = [];
 
@@ -318,32 +319,37 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) chunksRef.current.push(event.data);
+      if (event.data.size > 0) {
+        chunksRef.current.push(event.data);
+      }
     };
 
     mediaRecorder.start(1000);
+
     startAudioLevelMonitor(stream);
 
-    // Phone call detection via track mute events (web)
     audioTrackRef.current = audioTrack;
     audioTrack.addEventListener('mute', () => {
       if (mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.pause();
-        stopTimer();
-        setState((prev) => {
-          pauseRecordingLiveActivity(prev.duration).catch(() => {});
-          return { ...prev, status: 'paused', showPhoneCallWarning: true };
-        });
+        setState(prev => ({
+          ...prev,
+          status: 'paused',
+          showPhoneCallWarning: true,
+          interruptionDetected: true,
+        }));
+        pauseRecordingLiveActivity(durationRef.current).catch(() => {});
       }
     });
     audioTrack.addEventListener('unmute', () => {
-      setState((prev) => ({ ...prev, showPhoneCallWarning: false }));
+      setState(prev => ({ ...prev, showPhoneCallWarning: false }));
     });
 
     const isLow = await checkLowStorage();
+
     storageCheckRef.current = setInterval(async () => {
       const low = await checkLowStorage();
-      setState((prev) => ({ ...prev, showLowStorageWarning: low }));
+      setState(prev => ({ ...prev, showLowStorageWarning: low }));
     }, 30_000);
 
     setState({
@@ -369,71 +375,133 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     startTimer();
     acquireWakeLock();
     startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
-    return 'started';
-  }, [updateStatus, startTimer, stopTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor, checkLowStorage]);
 
-  // ─── Stop Recording ────────────────────────────────────────────────
+    return 'started';
+  }, [updateStatus, startTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor, checkLowStorage]);
+
   const stopRecording = useCallback(async () => {
     const { status, duration, noteId } = state;
     if (!noteId || (status !== 'recording' && status !== 'paused')) return;
-    if (duration < 10) return;
+
+    if (duration < 10) {
+      // Too short — cancel instead of saving
+      stopTimer();
+      stopAudioLevelMonitor();
+      stopStorageCheck();
+      audioTrackRef.current = null;
+      cancelRecordingLiveActivity().catch(() => {});
+      if (isNativeRef.current) {
+        try { await recordingManager.stop(); } catch { recordingManager.reset(); }
+        isNativeRef.current = false;
+      } else {
+        const mr = mediaRecorderRef.current;
+        if (mr && mr.state !== 'inactive') { mr.onstop = null; mr.stop(); }
+        streamRef.current?.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+      releaseWakeLock();
+      recordingService.clearOrphanedRecording();
+      removePendingNote(noteId);
+      api.notes.delete(noteId).catch(() => {});
+      setState(initialState);
+      return;
+    }
 
     updateStatus('stopping');
     stopTimer();
     stopAudioLevelMonitor();
     stopStorageCheck();
+    audioTrackRef.current = null;
+
     endRecordingLiveActivity({ status: 'saved', seconds: duration }).catch(() => {});
 
     if (isNativeRef.current) {
-      // ─── NATIVE STOP ──────────────────────────────────────────
+      // --- NATIVE PATH: Stop native recording, read file, upload ---
       releaseWakeLock();
-      audioTrackRef.current = null;
 
       try {
         const result = await recordingManager.stop();
 
-        if (result.interruption !== 'none') {
-          setState((prev) => ({ ...prev, interruptionDetected: true }));
-        }
-
         updateStatus('uploading');
         updatePendingNote(noteId, { uploading: true });
 
+        if (result.interruption !== 'none') {
+          setState(prev => ({ ...prev, interruptionDetected: true }));
+        }
+
+        // Read the recorded file from the filesystem
+        let audioBlob: Blob | null = null;
         if (result.data?.path) {
-          const audioBlob = await localAudioStorage.readAudioBlobFromPath(result.data.path);
-          if (audioBlob) {
-            try {
-              const uploaded = await api.notes.upload(
-                noteId,
-                new Blob([audioBlob], { type: 'audio/mp4' })
-              );
-              recordingService.clearOrphanedRecording();
-              removePendingNote(noteId);
-              addNote(uploaded);
-            } catch {
-              createFailedNote(noteId, duration);
+          try {
+            const fileResult = await Filesystem.readFile({
+              path: result.data.path,
+              directory: Directory.Documents,
+            });
+            const base64 = fileResult.data as string;
+            const byteChars = atob(base64);
+            const bytes = new Uint8Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+              bytes[i] = byteChars.charCodeAt(i);
             }
-          } else {
-            createFailedNote(noteId, duration);
+            audioBlob = new Blob([bytes], { type: 'audio/mp4' });
+          } catch (readErr) {
+            console.error('[Recording] Failed to read native recording file:', readErr);
+          }
+        }
+
+        if (audioBlob) {
+          localAudioStorage.saveAudioBlob(noteId, audioBlob).catch((err) => {
+            console.warn('[Recording] Failed to save audio locally:', err);
+          });
+
+          try {
+            const uploaded = await api.notes.upload(noteId, audioBlob);
+            recordingService.clearOrphanedRecording();
+            removePendingNote(noteId);
+            addNote(uploaded);
+            setState(initialState);
+          } catch {
+            recordingService.clearOrphanedRecording();
+            removePendingNote(noteId);
+            addNote({
+              id: noteId,
+              title: `Recording ${new Date().toLocaleTimeString()}`,
+              duration,
+              status: 'failed',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+            setState(initialState);
           }
         } else {
-          createFailedNote(noteId, duration);
+          recordingService.clearOrphanedRecording();
+          removePendingNote(noteId);
+          addNote({
+            id: noteId,
+            title: `Recording ${new Date().toLocaleTimeString()}`,
+            duration,
+            status: 'failed',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+          setState(initialState);
         }
-      } catch {
-        createFailedNote(noteId, duration);
+      } catch (err) {
+        console.error('[Recording] Native stop failed:', err);
+        recordingManager.reset();
+        recordingService.clearOrphanedRecording();
+        removePendingNote(noteId);
+        setState(initialState);
       }
 
       isNativeRef.current = false;
-      setState(initialState);
       return;
     }
 
-    // ─── WEB STOP ──────────────────────────────────────────────
-    audioTrackRef.current = null;
-
+    // --- WEB PATH: Stop MediaRecorder ---
     return new Promise<void>((resolve) => {
       const mr = mediaRecorderRef.current;
-      if (!mr) { resolve(); return; }
+      if (!mr || mr.state === 'inactive') { resolve(); return; }
 
       mr.onstop = async () => {
         const audioBlob = new Blob(chunksRef.current, {
@@ -448,7 +516,9 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         updatePendingNote(noteId, { uploading: true });
 
         if (isNativePlatform()) {
-          localAudioStorage.saveAudioBlob(noteId, audioBlob).catch(() => {});
+          localAudioStorage.saveAudioBlob(noteId, audioBlob).catch((err) => {
+            console.warn('[Recording] Failed to save audio locally:', err);
+          });
         }
 
         try {
@@ -458,7 +528,16 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
           addNote(uploaded);
           setState(initialState);
         } catch {
-          createFailedNote(noteId, duration);
+          recordingService.clearOrphanedRecording();
+          removePendingNote(noteId);
+          addNote({
+            id: noteId,
+            title: `Recording ${new Date().toLocaleTimeString()}`,
+            duration,
+            status: 'failed',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
           setState(initialState);
         }
 
@@ -467,43 +546,50 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
       mr.stop();
     });
-  }, [state, updateStatus, stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote, updatePendingNote, addNote, createFailedNote]);
+  }, [state, updateStatus, stopTimer, stopAudioLevelMonitor, stopStorageCheck, releaseWakeLock, removePendingNote, updatePendingNote, addNote]);
 
-  // ─── Pause Recording ──────────────────────────────────────────────
-  const pauseRecording = useCallback(() => {
+  const pauseRecording = useCallback(async () => {
     if (state.status !== 'recording') return;
 
-    if (isNativeRef.current) {
-      recordingManager.pause().catch((err) =>
-        console.error('[Recording] Failed to pause native:', err)
-      );
-    } else {
-      const mr = mediaRecorderRef.current;
-      if (!mr) return;
-      mr.pause();
+    try {
+      if (isNativeRef.current) {
+        await recordingManager.pause();
+      } else {
+        const mr = mediaRecorderRef.current;
+        if (!mr) return;
+        mr.pause();
+      }
+      stopTimer();
+      updateStatus('paused');
+      pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+    } catch (err) {
+      console.error('[Recording] Failed to pause:', err);
     }
+  }, [state.status, stopTimer, updateStatus]);
 
-    stopTimer();
-    updateStatus('paused');
-    pauseRecordingLiveActivity(state.duration).catch(() => {});
-  }, [state.status, state.duration, stopTimer, updateStatus]);
-
-  // ─── Resume Recording ─────────────────────────────────────────────
-  const resumeRecording = useCallback(() => {
+  const resumeRecording = useCallback(async () => {
     if (state.status !== 'paused') return;
 
-    if (isNativeRef.current) {
-      recordingManager.resume().catch((err) =>
-        console.error('[Recording] Failed to resume native:', err)
-      );
-    } else {
-      const mr = mediaRecorderRef.current;
-      if (!mr) return;
-      mr.resume();
+    try {
+      if (isNativeRef.current) {
+        await recordingManager.resume();
+      } else {
+        const mr = mediaRecorderRef.current;
+        if (!mr) return;
+        mr.resume();
+      }
+      startTimer();
+      setState(prev => ({
+        ...prev,
+        status: 'recording',
+        showPhoneCallWarning: false,
+        interruptionDetected: false,
+      }));
+      resumeRecordingLiveActivity(state.noteId).catch(() => {});
+    } catch (err) {
+      console.error('[Recording] Failed to resume:', err);
     }
-
-    startTimer();
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
       status: 'recording',
       showPhoneCallWarning: false,
@@ -512,7 +598,6 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     resumeRecordingLiveActivity(state.noteId).catch(() => {});
   }, [state.status, state.noteId, startTimer]);
 
-  // ─── Cancel Recording ─────────────────────────────────────────────
   const cancelRecording = useCallback(async () => {
     const { noteId } = state;
 
@@ -520,6 +605,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     stopAudioLevelMonitor();
     stopStorageCheck();
     audioTrackRef.current = null;
+
     cancelRecordingLiveActivity().catch(() => {});
 
     if (isNativeRef.current) {

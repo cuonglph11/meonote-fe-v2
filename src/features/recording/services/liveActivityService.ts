@@ -467,8 +467,6 @@ export const pauseRecordingLiveActivity = async (
       data: { status: 'Paused' },
     });
 
-    await clearPersistedActivityState();
-
     const { activityId } = await LiveActivities.startActivity({
       layout: createPausedLayout(durationText),
       dynamicIslandLayout: createPausedDynamicIslandLayout(durationText),
@@ -478,9 +476,13 @@ export const pauseRecordingLiveActivity = async (
 
     activeActivityId = activityId;
     lastStatusSent = 'Paused';
+    await clearPersistedActivityState();
   } catch (error) {
     console.error('[LiveActivity] Failed to pause activity', error);
-    activeActivityId = null;
+    // Keep activeActivityId if the old one wasn't ended yet
+    if (activeActivityId === activityIdToEnd) {
+      activeActivityId = null;
+    }
   }
 };
 
@@ -500,8 +502,6 @@ export const resumeRecordingLiveActivity = async (
       data: { status: 'Resuming' },
     });
 
-    await clearPersistedActivityState();
-
     const { activityId } = await LiveActivities.startActivity({
       layout: baseLayout,
       dynamicIslandLayout,
@@ -520,7 +520,9 @@ export const resumeRecordingLiveActivity = async (
     scheduleLiveActivityHeartbeat();
   } catch (error) {
     console.error('[LiveActivity] Failed to resume activity', error);
-    activeActivityId = null;
+    if (activeActivityId === activityIdToEnd) {
+      activeActivityId = null;
+    }
   }
 };
 

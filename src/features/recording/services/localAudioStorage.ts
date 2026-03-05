@@ -129,24 +129,19 @@ function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const arrayBuffer = reader.result as ArrayBuffer;
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      resolve(btoa(binary));
+      const dataUrl = reader.result as string;
+      resolve(dataUrl.split(',')[1]);
     };
     reader.onerror = reject;
-    reader.readAsArrayBuffer(blob);
+    reader.readAsDataURL(blob);
   });
 }
 
 function base64ToBlob(base64: string, mimeType: string): Blob {
   const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
+  const bytes = new Uint8Array(byteCharacters.length);
   for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
+    bytes[i] = byteCharacters.charCodeAt(i);
   }
-  return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+  return new Blob([bytes], { type: mimeType });
 }

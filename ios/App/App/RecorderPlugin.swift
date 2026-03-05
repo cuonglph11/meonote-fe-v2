@@ -134,17 +134,12 @@ public class RecorderPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
+        // Read currentTime before stop() — it resets to 0 after stopping
+        let duration = recorder.currentTime * 1000
+        print("[RecorderPlugin] Duration from recorder.currentTime: \(Int(duration))ms")
+
         recorder.stop()
         print("[RecorderPlugin] Recorder stopped")
-
-        let duration: TimeInterval
-        if let startTime = recordingStartTime {
-            duration = Date().timeIntervalSince(startTime) * 1000
-            print("[RecorderPlugin] Duration calculated: \(Int(duration))ms")
-        } else {
-            duration = 0
-            print("[RecorderPlugin] Duration: 0ms (no startTime)")
-        }
 
         var path: String? = nil
         if let fileURL = currentFileURL {
@@ -279,6 +274,8 @@ public class RecorderPlugin: CAPPlugin, CAPBridgedPlugin {
 
         recordingState = .idle
         audioRecorder = nil
+        currentFileURL = nil
+        recordingStartTime = nil
 
         print("[RecorderPlugin] Recording finalized successfully")
     }

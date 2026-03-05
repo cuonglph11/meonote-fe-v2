@@ -18,6 +18,8 @@ export interface RecordingResult {
 class RecordingManager {
   private state: NativeRecordingState = 'idle';
   private startTime: number | null = null;
+  private pauseStartTime: number | null = null;
+  private totalPausedMs = 0;
   private appWasBackgrounded = false;
 
   private readonly INTERRUPTION_GAP_THRESHOLD_MS = 5000;
@@ -52,6 +54,7 @@ class RecordingManager {
 
       if (hasInterruption) {
         this.state = 'paused';
+        this.pauseStartTime = Date.now();
         console.log('[RecordingManager] Interruption detected via getCurrentStatus');
       }
 
@@ -87,16 +90,29 @@ class RecordingManager {
 
     this.state = 'recording';
     this.startTime = Date.now();
+    this.totalPausedMs = 0;
+    this.pauseStartTime = null;
     this.appWasBackgrounded = false;
 
     console.log('[RecordingManager] Recording started');
   }
 
   async stop(): Promise<RecordingResult> {
+    if (this.state === 'idle') {
+      throw new Error('No recording in progress');
+    }
+
+    // Account for any ongoing pause
+    if (this.state === 'paused' && this.pauseStartTime) {
+      this.totalPausedMs += Date.now() - this.pauseStartTime;
+      this.pauseStartTime = null;
+    }
+
     console.log('[RecordingManager] Stopping recording');
     const result = await Recorder.stopRecording();
 
-    const expectedDurationMs = this.startTime ? Date.now() - this.startTime : 0;
+    const wallClockMs = this.startTime ? Date.now() - this.startTime : 0;
+    const expectedDurationMs = wallClockMs - this.totalPausedMs;
     const actualDurationMs = result.value?.msDuration || 0;
     const gap = Math.max(0, expectedDurationMs - actualDurationMs);
 
@@ -113,6 +129,8 @@ class RecordingManager {
 
     this.state = 'idle';
     this.startTime = null;
+    this.pauseStartTime = null;
+    this.totalPausedMs = 0;
     this.appWasBackgrounded = false;
 
     return {
@@ -140,11 +158,13 @@ class RecordingManager {
     try {
       await Recorder.pauseRecording();
       this.state = 'paused';
+      this.pauseStartTime = Date.now();
       console.log('[RecordingManager] Recording paused');
     } catch (error) {
       const status = await Recorder.getCurrentStatus();
       if (status.status === 'PAUSED') {
         this.state = 'paused';
+        this.pauseStartTime = Date.now();
         console.log('[RecordingManager] Recording already paused, state synced');
       } else {
         throw error;
@@ -155,6 +175,10 @@ class RecordingManager {
   async resume(): Promise<void> {
     if (this.state !== 'paused') return;
     await Recorder.resumeRecording();
+    if (this.pauseStartTime) {
+      this.totalPausedMs += Date.now() - this.pauseStartTime;
+      this.pauseStartTime = null;
+    }
     this.state = 'recording';
     console.log('[RecordingManager] Recording resumed');
   }
@@ -173,6 +197,8 @@ class RecordingManager {
   reset(): void {
     this.state = 'idle';
     this.startTime = null;
+    this.pauseStartTime = null;
+    this.totalPausedMs = 0;
     this.appWasBackgrounded = false;
     console.log('[RecordingManager] Reset');
   }
