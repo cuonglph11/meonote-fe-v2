@@ -17,6 +17,11 @@ TEAM_ID="5V32LWH584"
 
 cd "$PROJECT_DIR"
 
+# Ensure Node >= 22 for Capacitor CLI
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm use 22 > /dev/null 2>&1 || true
+
 echo "🚀 MeoNote V2 → TestFlight Deploy"
 echo "================================"
 

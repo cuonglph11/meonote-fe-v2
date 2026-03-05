@@ -34,6 +34,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
+        // Finalize any active recording so the audio file is properly closed
+        if let bridge = (window?.rootViewController as? CAPBridgeViewController)?.bridge,
+           let recorderPlugin = bridge.plugin(withName: "Recorder") as? RecorderPlugin {
+            recorderPlugin.finalizeActiveRecording()
+        }
         // Attempt to end Live Activities on termination (best-effort; may not complete on force-kill)
         LiveActivityCleanup.endAllActivities()
     }
