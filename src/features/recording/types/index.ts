@@ -15,4 +15,6 @@ export interface RecordingState {
   showPhoneCallWarning: boolean;
   showLowStorageWarning: boolean;
   showNoAudioWarning: boolean;
+  interruptionDetected: boolean;
+  isNative: boolean;
 }
