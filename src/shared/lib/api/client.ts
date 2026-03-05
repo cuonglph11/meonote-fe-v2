@@ -1,5 +1,6 @@
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
+import Keychain from '../../plugins/keychain';
 import type { Note } from '../../types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://meonote-api-v2.clen.dev/webhook';
@@ -9,12 +10,34 @@ if (import.meta.env.PROD && !BASE_URL.startsWith('https://')) {
 
 const TOKEN_KEY = 'meonote_anonymous_token';
 
+function syncToKeychain(token: string): void {
+  Keychain.set({ key: TOKEN_KEY, value: token }).catch(() => {});
+}
+
 export async function getUserToken(): Promise<string> {
   if (Capacitor.isNativePlatform()) {
-    const { value } = await Preferences.get({ key: TOKEN_KEY });
-    if (value) return value;
+    // 1. Try Preferences (primary store)
+    const { value: prefValue } = await Preferences.get({ key: TOKEN_KEY });
+    if (prefValue) {
+      syncToKeychain(prefValue);
+      return prefValue;
+    }
+
+    // 2. Try Keychain (reinstall recovery)
+    try {
+      const { value: keychainValue } = await Keychain.get({ key: TOKEN_KEY });
+      if (keychainValue) {
+        await Preferences.set({ key: TOKEN_KEY, value: keychainValue });
+        return keychainValue;
+      }
+    } catch {
+      // Keychain unavailable, fall through to generate new token
+    }
+
+    // 3. Generate new token, write to both stores
     const token = crypto.randomUUID();
     await Preferences.set({ key: TOKEN_KEY, value: token });
+    syncToKeychain(token);
     return token;
   }
   let token = localStorage.getItem(TOKEN_KEY);

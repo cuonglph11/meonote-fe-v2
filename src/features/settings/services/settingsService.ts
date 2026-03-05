@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
+import Keychain from '@/shared/plugins/keychain';
 import type { Theme, Language, AppSettings } from '../types';
 
 const KEYS = {
@@ -5,6 +8,8 @@ const KEYS = {
   LANGUAGE: 'meonote_language',
   ONBOARDING_COMPLETED: 'meonote_onboarding_completed',
 };
+
+const TOKEN_KEY = 'meonote_anonymous_token';
 
 export const settingsService = {
   getSettings(): AppSettings {
@@ -28,8 +33,12 @@ export const settingsService = {
     localStorage.setItem(KEYS.ONBOARDING_COMPLETED, 'true');
   },
 
-  clearAllData(): void {
+  async clearAllData(): Promise<void> {
     localStorage.clear();
+    if (Capacitor.isNativePlatform()) {
+      await Preferences.clear();
+      await Keychain.remove({ key: TOKEN_KEY }).catch(() => {});
+    }
   },
 };
 

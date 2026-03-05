@@ -11,7 +11,7 @@ interface SettingsContextValue {
   setTheme: (theme: Theme) => void;
   setLanguage: (language: Language) => void;
   completeOnboarding: () => void;
-  clearAllData: () => void;
+  clearAllData: () => Promise<void>;
 }
 
 export const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -61,8 +61,8 @@ export const SettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setSettings((prev) => ({ ...prev, onboardingCompleted: true }));
   }, []);
 
-  const clearAllData = useCallback(() => {
-    settingsService.clearAllData();
+  const clearAllData = useCallback(async () => {
+    await settingsService.clearAllData();
     window.location.reload();
   }, []);
 
