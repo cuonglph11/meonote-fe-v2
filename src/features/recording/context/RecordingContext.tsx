@@ -226,59 +226,66 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
     if (useNative) {
       // --- NATIVE PATH: iOS via RecorderPlugin ---
-      const hasPermission = await recordingManager.checkPermissions();
-      if (!hasPermission) {
-        const granted = await recordingManager.requestPermissions();
-        if (!granted) {
-          updateStatus('idle');
-          return 'permission_denied';
+      try {
+        const hasPermission = await recordingManager.checkPermissions();
+        if (!hasPermission) {
+          const granted = await recordingManager.requestPermissions();
+          if (!granted) {
+            updateStatus('idle');
+            return 'permission_denied';
+          }
         }
+
+        let note: Note;
+        try {
+          note = await api.notes.create();
+        } catch {
+          updateStatus('idle');
+          return 'init_failed';
+        }
+
+        recordingService.setOrphanedRecording(note.id);
+
+        try {
+          await recordingManager.start(note.id);
+        } catch {
+          recordingService.clearOrphanedRecording();
+          api.notes.delete(note.id).catch(() => {});
+          updateStatus('idle');
+          return 'init_failed';
+        }
+
+        setState({
+          status: 'recording',
+          duration: 0,
+          noteId: note.id,
+          audioLevel: 0,
+          showPhoneCallWarning: false,
+          showLowStorageWarning: false,
+          showNoAudioWarning: false,
+          interruptionDetected: false,
+          isNative: true,
+        });
+
+        addPendingNote({
+          id: note.id,
+          title: note.title,
+          duration: 0,
+          uploading: false,
+          startedAt: new Date().toISOString(),
+        });
+
+        startTimer();
+        acquireWakeLock();
+        startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
+
+        return 'started';
+      } catch (err) {
+        // Native plugin unavailable — fall through to web path
+        console.warn('[Recording] Native recorder failed, falling back to web:', err);
+        isNativeRef.current = false;
+        updateStatus('requesting');
       }
-
-      let note: Note;
-      try {
-        note = await api.notes.create();
-      } catch {
-        updateStatus('idle');
-        return 'init_failed';
-      }
-
-      recordingService.setOrphanedRecording(note.id);
-
-      try {
-        await recordingManager.start(note.id);
-      } catch {
-        recordingService.clearOrphanedRecording();
-        api.notes.delete(note.id).catch(() => {});
-        updateStatus('idle');
-        return 'init_failed';
-      }
-
-      setState({
-        status: 'recording',
-        duration: 0,
-        noteId: note.id,
-        audioLevel: 0,
-        showPhoneCallWarning: false,
-        showLowStorageWarning: false,
-        showNoAudioWarning: false,
-        interruptionDetected: false,
-        isNative: true,
-      });
-
-      addPendingNote({
-        id: note.id,
-        title: note.title,
-        duration: 0,
-        uploading: false,
-        startedAt: new Date().toISOString(),
-      });
-
-      startTimer();
-      acquireWakeLock();
-      startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
-
-      return 'started';
     }
 
     // --- WEB PATH: Browser via MediaRecorder ---
