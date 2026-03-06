@@ -40,6 +40,7 @@ let recordingStartTime: number | null = null;
 let lastStatusSent: string | null = null;
 let cachedNoteId: string | null = null;
 let updateInProgress = false;
+let isEnding = false;
 let heartbeatIntervalId: ReturnType<typeof setInterval> | null = null;
 
 const formatDuration = (totalSeconds: number): string => {
@@ -328,7 +329,7 @@ const getPersistedActivityState = async (): Promise<{
 
 // Heartbeat logic
 const sendHeartbeat = async (): Promise<void> => {
-  if (!activeActivityId || updateInProgress) return;
+  if (!activeActivityId || updateInProgress || isEnding) return;
 
   updateInProgress = true;
   try {
@@ -433,7 +434,7 @@ export const updateRecordingLiveActivity = async (
   seconds: number,
   status = 'Recording'
 ): Promise<void> => {
-  if (!activeActivityId || !Capacitor.isNativePlatform()) return;
+  if (!activeActivityId || !Capacitor.isNativePlatform() || isEnding) return;
   if (lastStatusSent === status) return;
   if (updateInProgress) return;
 
@@ -465,7 +466,8 @@ export const pauseRecordingLiveActivity = async (
     await LiveActivities.endActivity({
       activityId: activityIdToEnd,
       data: { status: 'Paused' },
-    });
+      behavior: { dismissalPolicy: 'immediate' },
+    } as any);
 
     const { activityId } = await LiveActivities.startActivity({
       layout: createPausedLayout(durationText),
@@ -500,7 +502,8 @@ export const resumeRecordingLiveActivity = async (
     await LiveActivities.endActivity({
       activityId: activityIdToEnd,
       data: { status: 'Resuming' },
-    });
+      behavior: { dismissalPolicy: 'immediate' },
+    } as any);
 
     const { activityId } = await LiveActivities.startActivity({
       layout: baseLayout,
@@ -529,9 +532,13 @@ export const resumeRecordingLiveActivity = async (
 export const endRecordingLiveActivity = async (
   options: EndOptions
 ): Promise<void> => {
+  isEnding = true;
   clearLiveActivityHeartbeat();
 
-  if (!activeActivityId) return;
+  if (!activeActivityId) {
+    isEnding = false;
+    return;
+  }
 
   const activityIdToEnd = activeActivityId;
 
@@ -554,6 +561,7 @@ export const endRecordingLiveActivity = async (
     recordingStartTime = null;
     lastStatusSent = null;
     updateInProgress = false;
+    isEnding = false;
     await clearPersistedActivityState();
   }
 };
