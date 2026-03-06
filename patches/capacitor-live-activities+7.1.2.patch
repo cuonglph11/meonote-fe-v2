@@ -1,3 +1,28 @@
+diff --git a/node_modules/capacitor-live-activities/.swiftpm/xcode/xcuserdata/chris.xcuserdatad/xcschemes/xcschememanagement.plist b/node_modules/capacitor-live-activities/.swiftpm/xcode/xcuserdata/chris.xcuserdatad/xcschemes/xcschememanagement.plist
+new file mode 100644
+index 0000000..8066d1f
+--- /dev/null
++++ b/node_modules/capacitor-live-activities/.swiftpm/xcode/xcuserdata/chris.xcuserdatad/xcschemes/xcschememanagement.plist
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>SchemeUserState</key>
++	<dict>
++		<key>CapacitorLiveActivities.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>6</integer>
++		</dict>
++		<key>LiveActivitiesKit.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>1</integer>
++		</dict>
++	</dict>
++</dict>
++</plist>
 diff --git a/node_modules/capacitor-live-activities/Package.swift b/node_modules/capacitor-live-activities/Package.swift
 index b846a74..5ff8557 100644
 --- a/node_modules/capacitor-live-activities/Package.swift
@@ -19,7 +44,7 @@ index b846a74..5ff8557 100644
      targets: [
          .target(
 diff --git a/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift b/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift
-index 8d2aad6..71075fc 100644
+index 8d2aad6..6a94a33 100644
 --- a/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift
 +++ b/node_modules/capacitor-live-activities/ios/Plugin/LiveActivities.swift
 @@ -1,6 +1,7 @@
@@ -30,3 +55,77 @@ index 8d2aad6..71075fc 100644
  
  #if canImport(ActivityKit)
  import ActivityKit
+@@ -84,18 +85,17 @@ import ActivityKit
+         alertConfig: [String: Any]?,
+         behavior: [String: Any]?
+     ) async throws {
+-        guard let activity = activities[activityId] else {
+-            // If not found, try to retrieve from the system
++        // Try local dictionary first, then recover from system
++        var activity = activities[activityId]
++        if activity == nil {
+             await syncExistingActivities()
++            activity = activities[activityId]
++        }
+ 
+-            // Tentar novamente
+-            guard activities[activityId] != nil else {
+-                Logger.viewCycle.error("❌ Activity not found: \(activityId)")
+-                Logger.viewCycle.error("📊 Available activities: \(self.activities.keys)")
+-                throw LiveActivitiesError.activityNotFound
+-            }
+-            
+-            return
++        guard let activity = activity else {
++            Logger.viewCycle.error("❌ Activity not found: \(activityId)")
++            Logger.viewCycle.error("📊 Available activities: \(self.activities.keys)")
++            throw LiveActivitiesError.activityNotFound
+         }
+         
+         if let sharedDefaults = UserDefaults(suiteName: "group.\(Bundle.main.bundleIdentifier ?? "").LiveActivities") {
+@@ -135,14 +135,15 @@ import ActivityKit
+         finalData: [String: Any]?,
+         behavior: [String: Any]?
+     ) async throws {
+-        guard let activity = activities[activityId] else {
+-            // Tentar recuperar
++        // Try local dictionary first, then recover from system
++        var activity = activities[activityId]
++        if activity == nil {
+             await syncExistingActivities()
+-            guard let activity = activities[activityId] else {
+-                throw LiveActivitiesError.activityNotFound
+-            }
++            activity = activities[activityId]
++        }
+ 
+-            return
++        guard let activity = activity else {
++            throw LiveActivitiesError.activityNotFound
+         }
+ 
+         // Limpar dados do App Group
+@@ -162,13 +163,21 @@ import ActivityKit
+             ActivityContent(state: $0, staleDate: nil)
+         }
+ 
++        // Parse dismissalPolicy from behavior parameter
++        let policy: ActivityUIDismissalPolicy
++        if let dismissalString = behavior?["dismissalPolicy"] as? String, dismissalString == "immediate" {
++            policy = .immediate
++        } else {
++            policy = .immediate // Default to immediate to prevent lingering activities
++        }
++
+         await activity.end(
+             finalContent,
+-            dismissalPolicy: .default
++            dismissalPolicy: policy
+         )
+ 
+         activities.removeValue(forKey: activityId)
+-        Logger.viewCycle.error("✅ Ended activity: \(activityId)")
++        Logger.viewCycle.error("✅ Ended activity: \(activityId) with dismissalPolicy: \(String(describing: policy))")
+     }
+     
+     @objc public func getAllActivities() async -> [[String: Any]] {

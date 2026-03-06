@@ -108,7 +108,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
               interruptionDetected: true,
             };
           });
-          pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+          pauseRecordingLiveActivity(durationRef.current).catch((err) => console.warn('[LiveActivity] Pause failed:', err));
         } else if (stateRef.current.status === 'recording') {
           // Recalculate duration immediately after returning from background
           const elapsed = Math.floor((Date.now() - recordingStartTimeRef.current - totalPausedMsRef.current) / 1000);
@@ -157,7 +157,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
             interruptionDetected: true,
           };
         });
-        pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+        pauseRecordingLiveActivity(durationRef.current).catch((err) => console.warn('[LiveActivity] Pause failed:', err));
       } else if (data.type === 'ended') {
         // Interruption ended — user must manually resume via the UI
         setState(prev => ({ ...prev, showPhoneCallWarning: false }));
@@ -324,7 +324,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
         startTimer();
         acquireWakeLock();
-        startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
+        startRecordingLiveActivity({ noteId: note.id }).catch((err) => console.warn('[LiveActivity] Start failed:', err));
 
         return 'started';
       } catch (err) {
@@ -392,7 +392,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
           showPhoneCallWarning: true,
           interruptionDetected: true,
         }));
-        pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+        pauseRecordingLiveActivity(durationRef.current).catch((err) => console.warn('[LiveActivity] Pause failed:', err));
       }
     });
     audioTrack.addEventListener('unmute', () => {
@@ -432,7 +432,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
 
     startTimer();
     acquireWakeLock();
-    startRecordingLiveActivity({ noteId: note.id }).catch(() => {});
+    startRecordingLiveActivity({ noteId: note.id }).catch((err) => console.warn('[LiveActivity] Start failed:', err));
 
     return 'started';
   }, [updateStatus, startTimer, acquireWakeLock, addPendingNote, startAudioLevelMonitor, checkLowStorage]);
@@ -447,7 +447,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       stopAudioLevelMonitor();
       stopStorageCheck();
       audioTrackRef.current = null;
-      cancelRecordingLiveActivity().catch(() => {});
+      cancelRecordingLiveActivity().catch((err) => console.warn('[LiveActivity] Cancel failed:', err));
       if (isNativeRef.current) {
         try { await recordingManager.stop(); } catch { recordingManager.reset(); }
         isNativeRef.current = false;
@@ -471,7 +471,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     stopStorageCheck();
     audioTrackRef.current = null;
 
-    endRecordingLiveActivity({ status: 'saved', seconds: duration }).catch(() => {});
+    endRecordingLiveActivity({ status: 'saved', seconds: duration }).catch((err) => console.warn('[LiveActivity] End failed:', err));
 
     if (isNativeRef.current) {
       // --- NATIVE PATH: Stop native recording, read file, upload ---
@@ -546,7 +546,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         }
       } catch (err) {
         console.error('[Recording] Native stop failed:', err);
-        endRecordingLiveActivity({ status: 'saved', seconds: duration }).catch(() => {});
+        endRecordingLiveActivity({ status: 'saved', seconds: duration }).catch((err) => console.warn('[LiveActivity] End failed:', err));
         recordingManager.reset();
         recordingService.clearOrphanedRecording();
         removePendingNote(noteId);
@@ -621,7 +621,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
       pauseStartTimeRef.current = Date.now();
       stopTimer();
       updateStatus('paused');
-      pauseRecordingLiveActivity(durationRef.current).catch(() => {});
+      pauseRecordingLiveActivity(durationRef.current).catch((err) => console.warn('[LiveActivity] Pause failed:', err));
     } catch (err) {
       console.error('[Recording] Failed to pause:', err);
     }
@@ -647,7 +647,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
         showPhoneCallWarning: false,
         interruptionDetected: false,
       }));
-      resumeRecordingLiveActivity(stateRef.current.noteId).catch(() => {});
+      resumeRecordingLiveActivity(stateRef.current.noteId).catch((err) => console.warn('[LiveActivity] Resume failed:', err));
     } catch (err) {
       console.error('[Recording] Failed to resume:', err);
     }
@@ -661,7 +661,7 @@ export const RecordingProvider: FC<{ children: ReactNode }> = ({ children }) => 
     stopStorageCheck();
     audioTrackRef.current = null;
 
-    cancelRecordingLiveActivity().catch(() => {});
+    cancelRecordingLiveActivity().catch((err) => console.warn('[LiveActivity] Cancel failed:', err));
 
     if (isNativeRef.current) {
       try {
