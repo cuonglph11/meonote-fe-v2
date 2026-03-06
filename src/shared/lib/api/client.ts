@@ -86,7 +86,12 @@ const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_RETRIES = 1;
 const RETRY_DELAY_MS = 1_000;
 
-async function request<T>(path: string, options: RequestInit = {}, retries = MAX_RETRIES): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  retries = MAX_RETRIES,
+  timeoutMs = REQUEST_TIMEOUT_MS,
+): Promise<T> {
   const token = await getUserToken();
 
   const headers: Record<string, string> = {
@@ -98,7 +103,7 @@ async function request<T>(path: string, options: RequestInit = {}, retries = MAX
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${BASE_URL}${path}`, {
@@ -125,7 +130,7 @@ async function request<T>(path: string, options: RequestInit = {}, retries = MAX
   } catch (err) {
     if (retries > 0 && !(err instanceof DOMException && err.name === 'AbortError' && options.method === 'DELETE')) {
       await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
-      return request<T>(path, options, retries - 1);
+      return request<T>(path, options, retries - 1, timeoutMs);
     }
     throw err;
   } finally {
@@ -210,6 +215,19 @@ export const api = {
       );
       if (!response.ok) throw new Error(`Download failed: ${response.status}`);
       return response.blob();
+    },
+
+    regenerate: async (noteId: string, customPrompt: string): Promise<Note> => {
+      const raw = await request<LegacyNote>(
+        `/regenerate?noteId=${noteId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ customPrompt }),
+        },
+        MAX_RETRIES,
+        60_000,
+      );
+      return mapNote(raw);
     },
   },
 };

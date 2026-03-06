@@ -110,6 +110,24 @@
     "dangerZone": "Vùng nguy hiểm",
     "cannotBeUndone": "Hành động này không thể hoàn tác"
   },
+  "regenerate": {
+    "title": "Chọn định dạng",
+    "executiveSummary": "Tóm tắt tổng quan",
+    "executiveSummaryDesc": "Tổng quan ngắn gọn dạng đoạn văn",
+    "keyPoints": "Điểm chính",
+    "keyPointsDesc": "Các điểm quan trọng dạng danh sách",
+    "actionItems": "Việc cần làm",
+    "actionItemsDesc": "Công việc, người phụ trách và bước tiếp theo",
+    "detailedNotes": "Ghi chú chi tiết",
+    "detailedNotesDesc": "Ghi chú có cấu trúc đầy đủ",
+    "meetingMinutes": "Biên bản họp",
+    "meetingMinutesDesc": "Biên bản chính thức với quyết định",
+    "quickRecap": "Tóm tắt nhanh",
+    "quickRecapDesc": "Tóm tắt cực ngắn 2-3 câu",
+    "regenerating": "Đang tạo lại tóm tắt...",
+    "failed": "Tạo lại thất bại. Vui lòng thử lại.",
+    "button": "Tạo lại"
+  },
   "error": {
     "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối của bạn.",
     "serverError": "Lỗi máy chủ. Vui lòng thử lại.",

@@ -18,7 +18,7 @@ import {
 } from '@ionic/react';
 import { useParams, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Edit3, RefreshCw, ChevronsUp, Pencil } from 'lucide-react';
+import { Trash2, Edit3, RefreshCw, ChevronsUp, Pencil, Sparkles } from 'lucide-react';
 import { formatDuration } from '@/features/notes/services/notesService';
 import { useNotes } from '@/features/notes/hooks/useNotes';
 import { useRecording } from '@/features/recording/hooks/useRecording';
@@ -26,6 +26,7 @@ import { AudioPlayer } from '@/shared/components/AudioPlayer';
 import { RecordingUI } from '@/features/recording/components/RecordingUI';
 import { MarkdownContent } from '@/shared/components/MarkdownContent';
 import { api } from '@/shared/lib/api/client';
+import { RegenerateSheet } from '@/features/notes/components/RegenerateSheet';
 import type { Note } from '@/shared/types';
 
 const MAX_SUMMARY_LENGTH = 50_000;
@@ -47,6 +48,8 @@ export const MeetingDetailPage: FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+  const [isRegenerateOpen, setIsRegenerateOpen] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [presentToast] = useIonToast();
   const contentRef = useRef<HTMLIonContentElement | null>(null);
 
@@ -133,6 +136,21 @@ export const MeetingDetailPage: FC = () => {
     }
   };
 
+  const handleRegenerated = useCallback(
+    (newContent: string) => {
+      setIsRegenerating(false);
+      if (!newContent) {
+        presentToast({ message: t('regenerate.failed'), duration: 3000, color: 'danger' });
+        return;
+      }
+      setNote((prev) => (prev ? { ...prev, summarizedContent: newContent } : prev));
+      if (note) updateNote(note.id, { summarizedContent: newContent });
+      setActiveTab('summary');
+      contentRef.current?.scrollToTop(300);
+    },
+    [note, updateNote, presentToast, t],
+  );
+
   if (loading && !note) {
     return (
       <IonPage data-testid="meeting-detail-page">
@@ -193,6 +211,16 @@ export const MeetingDetailPage: FC = () => {
             >
               <Trash2 size={18} />
             </IonButton>
+            {note.summarizedContent && (
+              <IonButton
+                onClick={() => setIsRegenerateOpen(true)}
+                disabled={isRegenerating}
+                aria-label={t('regenerate.button')}
+                data-testid="regenerate-button"
+              >
+                <Sparkles size={18} />
+              </IonButton>
+            )}
             <IonButton
               onClick={() => {
                 setActiveTab('summary');
@@ -292,6 +320,16 @@ export const MeetingDetailPage: FC = () => {
                   data-testid="summary-edit-textarea"
                 />
               </div>
+            ) : isRegenerating ? (
+              <div className="space-y-3 py-2" data-testid="regenerate-skeleton">
+                <div className="h-4 w-full rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
+                <div className="h-4 w-5/6 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
+                <div className="h-4 w-4/6 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
+                <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
+                <p className="text-xs text-warm-text-secondary dark:text-dark-text-secondary mt-4">
+                  {t('regenerate.regenerating')}
+                </p>
+              </div>
             ) : (
               <div>
                 {note.summarizedContent ? (
@@ -386,6 +424,16 @@ export const MeetingDetailPage: FC = () => {
         ]}
         onDidDismiss={() => setShowPermissionAlert(false)}
         data-testid="detail-permission-denied-alert"
+      />
+
+      {/* Regenerate sheet */}
+      <RegenerateSheet
+        isOpen={isRegenerateOpen}
+        onDismiss={() => setIsRegenerateOpen(false)}
+        noteId={note.id}
+        onRegenerated={handleRegenerated}
+        isRegenerating={isRegenerating}
+        onRegenerateStart={() => setIsRegenerating(true)}
       />
 
       {/* Recording overlay */}
