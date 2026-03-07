@@ -192,7 +192,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
   }
 
   return (
-    <div className="audio-player flex flex-col gap-2 p-4 bg-stone-100 dark:bg-gray-800 rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm" data-testid="audio-player">
+    <div className="audio-player flex flex-col gap-2 p-4 bg-stone-100 dark:bg-dark-surface rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm" data-testid="audio-player">
       {blobUrl && (
         <audio ref={audioRef} src={blobUrl} preload="metadata" data-testid="audio-element" />
       )}
@@ -227,7 +227,7 @@ export const AudioPlayer: FC<AudioPlayerProps> = ({ audioUrl, duration, isCorrup
           />
         </div>
 
-        <span className="text-xs text-text-secondary dark:text-neutral-400 font-mono min-w-[80px] text-right" data-testid="audio-time">
+        <span className="text-xs text-text-secondary dark:text-dark-text-secondary font-mono min-w-[80px] text-right" data-testid="audio-time">
           {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(audioDuration))}
         </span>
       </div>

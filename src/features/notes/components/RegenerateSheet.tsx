@@ -136,20 +136,20 @@ export const RegenerateSheet: FC<RegenerateSheetProps> = ({
                 <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
                   <Icon
                     size={18}
-                    className="text-text-secondary dark:text-neutral-400"
+                    className="text-text-secondary dark:text-dark-text-secondary"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text-primary dark:text-gray-100">
+                  <p className="text-sm font-medium text-text-primary dark:text-dark-text">
                     {t(template.nameKey)}
                   </p>
-                  <p className="text-xs text-text-secondary dark:text-neutral-400 mt-0.5">
+                  <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
                     {t(template.descKey)}
                   </p>
                 </div>
                 <ChevronRight
                   size={16}
-                  className="flex-shrink-0 text-text-secondary/40 dark:text-neutral-400/40"
+                  className="flex-shrink-0 text-text-secondary/40 dark:text-dark-text-secondary/40"
                 />
               </button>
             );
