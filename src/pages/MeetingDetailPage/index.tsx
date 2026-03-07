@@ -262,7 +262,7 @@ export const MeetingDetailPage: FC = () => {
         )}
 
         {/* Note metadata */}
-        <div className="flex items-center gap-2 mb-3 text-[11px] text-text-secondary dark:text-neutral-400">
+        <div className="flex items-center gap-2 mb-3 text-[11px] text-text-secondary dark:text-dark-text-secondary">
           <span>
             {new Date(note.createdAt).toLocaleDateString(undefined, {
               weekday: 'short',
@@ -302,9 +302,9 @@ export const MeetingDetailPage: FC = () => {
         {activeTab === 'summary' && (
           <div className="mt-4 animate-fade-in" data-testid="summary-content">
             {isEditingSummary ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-2 border-b border-stone-100 dark:border-stone-700/50 bg-stone-50/50 dark:bg-gray-800/50">
-                  <span className="text-xs font-sans font-medium text-text-secondary dark:text-neutral-400 uppercase tracking-wider">Markdown</span>
+              <div className="bg-white dark:bg-dark-surface rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-stone-100 dark:border-stone-700/50 bg-stone-50/50 dark:bg-dark-surface-elevated/50">
+                  <span className="text-xs font-sans font-medium text-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">Markdown</span>
                   <div className="flex gap-1">
                     <IonButton fill="clear" size="small" onClick={() => setIsEditingSummary(false)}>
                       {t('common.cancel')}
@@ -313,7 +313,7 @@ export const MeetingDetailPage: FC = () => {
                   </div>
                 </div>
                 <textarea
-                  className="w-full p-4 bg-transparent text-text-primary dark:text-gray-100 resize-y outline-none font-mono text-sm leading-relaxed min-h-[40vh] md:min-h-[60vh] max-h-[80vh]"
+                  className="w-full p-4 bg-transparent text-text-primary dark:text-dark-text resize-y outline-none font-mono text-sm leading-relaxed min-h-[40vh] md:min-h-[60vh] max-h-[80vh]"
                   value={editSummaryValue}
                   onChange={(e) => setEditSummaryValue(e.target.value)}
                   autoFocus
@@ -326,7 +326,7 @@ export const MeetingDetailPage: FC = () => {
                 <div className="h-4 w-5/6 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
                 <div className="h-4 w-4/6 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
                 <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
-                <p className="text-xs text-text-secondary dark:text-neutral-400 mt-4">
+                <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-4">
                   {t('regenerate.regenerating')}
                 </p>
               </div>
@@ -338,7 +338,7 @@ export const MeetingDetailPage: FC = () => {
                     data-testid="summary-text"
                   />
                 ) : (
-                  <p className="text-text-secondary dark:text-neutral-400 italic" data-testid="no-summary">
+                  <p className="text-text-secondary dark:text-dark-text-secondary italic" data-testid="no-summary">
                     {t('detail.noSummary')}
                   </p>
                 )}
@@ -370,7 +370,7 @@ export const MeetingDetailPage: FC = () => {
               />
             ) : (
               <p
-                className="text-text-secondary dark:text-neutral-400 italic"
+                className="text-text-secondary dark:text-dark-text-secondary italic"
                 data-testid="no-transcription"
               >
                 {t('detail.noTranscription')}

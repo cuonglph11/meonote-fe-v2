@@ -64,10 +64,10 @@ export const OnboardingPage: FC = () => {
 
           {/* Title + subtitle */}
           <div className="text-center mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <h1 className="text-3xl font-sans font-bold tracking-tight text-text-primary dark:text-gray-100">
+            <h1 className="text-3xl font-sans font-bold tracking-tight text-text-primary dark:text-dark-text">
               {t('onboarding.title')}
             </h1>
-            <p className="text-text-secondary dark:text-neutral-400 mt-2 text-[0.9375rem] leading-relaxed max-w-[280px] mx-auto">
+            <p className="text-text-secondary dark:text-dark-text-secondary mt-2 text-[0.9375rem] leading-relaxed max-w-[280px] mx-auto">
               {t('onboarding.subtitle')}
             </p>
           </div>
@@ -76,14 +76,14 @@ export const OnboardingPage: FC = () => {
           <div className="w-full max-w-sm space-y-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
 
             {/* Language card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
+            <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
               <IonItem lines="none">
                 <div className="flex items-center gap-3 w-full py-1">
                   <div className="w-9 h-9 rounded-xl bg-primary-500/10 dark:bg-primary-400/10 flex items-center justify-center flex-shrink-0">
                     <Globe size={17} className="text-primary-500 dark:text-primary-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-sans font-semibold text-text-primary dark:text-gray-100">
+                    <p className="text-[13px] font-sans font-semibold text-text-primary dark:text-dark-text">
                       {t('onboarding.selectLanguage')}
                     </p>
                   </div>
@@ -101,14 +101,14 @@ export const OnboardingPage: FC = () => {
             </div>
 
             {/* Theme card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
+            <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
               <IonItem lines="none">
                 <div className="flex items-center gap-3 w-full py-1">
                   <div className="w-9 h-9 rounded-xl bg-primary-100/10 flex items-center justify-center flex-shrink-0">
                     <Moon size={17} className="text-primary-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-sans font-semibold text-text-primary dark:text-gray-100">
+                    <p className="text-[13px] font-sans font-semibold text-text-primary dark:text-dark-text">
                       {t('onboarding.selectTheme')}
                     </p>
                   </div>
@@ -127,7 +127,7 @@ export const OnboardingPage: FC = () => {
             </div>
 
             {/* Consent card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
+            <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
               <IonItem lines="none">
                 <div className="flex items-center gap-3 w-full py-1.5">
                   <IonCheckbox
@@ -135,7 +135,7 @@ export const OnboardingPage: FC = () => {
                     onIonChange={(e) => setConsentChecked(e.detail.checked)}
                     data-testid="consent-checkbox"
                   />
-                  <IonLabel className="text-[13px] text-text-secondary dark:text-neutral-400 leading-snug">
+                  <IonLabel className="text-[13px] text-text-secondary dark:text-dark-text-secondary leading-snug">
                     {t('onboarding.consent')}
                   </IonLabel>
                 </div>
@@ -157,7 +157,7 @@ export const OnboardingPage: FC = () => {
           </div>
 
           {/* Footer — subtle brand mark */}
-          <p className="text-[10px] text-text-secondary/40 dark:text-neutral-400/30 mt-8 font-mono tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <p className="text-[10px] text-text-secondary/40 dark:text-dark-text-secondary/30 mt-8 font-mono tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.4s' }}>
             MeoNote v{APP_VERSION}
           </p>
         </div>

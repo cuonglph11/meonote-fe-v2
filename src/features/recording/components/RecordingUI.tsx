@@ -80,7 +80,7 @@ export const RecordingUI: FC = () => {
         className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 backdrop-blur-sm z-50 flex items-end justify-center pb-safe"
         data-testid="recording-ui"
       >
-        <div className="bg-surface dark:bg-gray-800 rounded-t-[28px] w-full max-w-md p-6 pb-safe flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up" style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom))` }}>
+        <div className="bg-surface dark:bg-dark-surface rounded-t-[28px] w-full max-w-md p-6 pb-safe flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up" style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom))` }}>
 
           {/* Handle bar */}
           <div className="w-10 h-1 rounded-full bg-stone-200 dark:bg-stone-700 -mt-1 mb-1" />
@@ -179,7 +179,7 @@ export const RecordingUI: FC = () => {
                 {/* Progressive text */}
                 <p
                   key={uploadPhase}
-                  className="text-xs font-sans font-medium tracking-wider uppercase text-text-secondary dark:text-neutral-400"
+                  className="text-xs font-sans font-medium tracking-wider uppercase text-text-secondary dark:text-dark-text-secondary"
                   style={{ animation: 'fade-in 0.4s ease-out' }}
                 >
                   {UPLOAD_MESSAGES[uploadPhase]}
@@ -187,7 +187,7 @@ export const RecordingUI: FC = () => {
 
                 {/* Dimmed timer */}
                 <p
-                  className="text-5xl font-sans font-bold text-text-primary/20 dark:text-gray-100/20 tabular-nums tracking-tight"
+                  className="text-5xl font-sans font-bold text-text-primary/20 dark:text-dark-text/20 tabular-nums tracking-tight"
                   data-testid="recording-timer"
                 >
                   {formatDuration(state.duration)}
@@ -264,7 +264,7 @@ export const RecordingUI: FC = () => {
                 )}
 
                 {/* Status label */}
-                <p className="text-xs font-sans font-medium tracking-wider uppercase text-text-secondary dark:text-neutral-400">
+                <p className="text-xs font-sans font-medium tracking-wider uppercase text-text-secondary dark:text-dark-text-secondary">
                   {isPaused
                     ? t('recording.paused')
                     : t('recording.recording')}
@@ -272,7 +272,7 @@ export const RecordingUI: FC = () => {
 
                 {/* Timer */}
                 <p
-                  className="text-5xl font-sans font-bold text-text-primary dark:text-gray-100 tabular-nums tracking-tight"
+                  className="text-5xl font-sans font-bold text-text-primary dark:text-dark-text tabular-nums tracking-tight"
                   data-testid="recording-timer"
                 >
                   {formatDuration(state.duration)}
@@ -325,8 +325,8 @@ export const RecordingUI: FC = () => {
                 data-testid="cancel-recording-button"
                 className="recording-control-btn"
               >
-                <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-gray-800 flex items-center justify-center border border-stone-200 dark:border-stone-700/50 active:scale-95 transition-transform">
-                  <X size={18} strokeWidth={2} className="text-text-secondary dark:text-neutral-400" />
+                <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center border border-stone-200 dark:border-stone-700/50 active:scale-95 transition-transform">
+                  <X size={18} strokeWidth={2} className="text-text-secondary dark:text-dark-text-secondary" />
                 </div>
               </IonButton>
 
@@ -360,12 +360,12 @@ export const RecordingUI: FC = () => {
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 active:scale-95 transition-transform ${
                   isPaused
                     ? 'bg-warning/10 border-warning/40 dark:border-warning/30'
-                    : 'bg-white dark:bg-gray-800 border-stone-200 dark:border-stone-600'
+                    : 'bg-white dark:bg-dark-surface-elevated border-stone-200 dark:border-stone-600'
                 }`}>
                   {isPaused ? (
                     <Play size={18} strokeWidth={2.5} className="text-warning ml-0.5" />
                   ) : (
-                    <Pause size={18} strokeWidth={2.5} className="text-text-primary dark:text-gray-100" />
+                    <Pause size={18} strokeWidth={2.5} className="text-text-primary dark:text-dark-text" />
                   )}
                 </div>
               </IonButton>
