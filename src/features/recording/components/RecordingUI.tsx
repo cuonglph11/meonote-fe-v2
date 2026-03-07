@@ -80,7 +80,7 @@ export const RecordingUI: FC = () => {
         className="fixed inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 backdrop-blur-sm z-50 flex items-end justify-center pb-safe"
         data-testid="recording-ui"
       >
-        <div className="bg-warm-surface dark:bg-dark-surface rounded-t-[28px] w-full max-w-md p-6 pb-safe flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up" style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom))` }}>
+        <div className="bg-surface dark:bg-gray-800 rounded-t-[28px] w-full max-w-md p-6 pb-safe flex flex-col items-center gap-5 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] animate-slide-up" style={{ paddingBottom: `max(1.5rem, env(safe-area-inset-bottom))` }}>
 
           {/* Handle bar */}
           <div className="w-10 h-1 rounded-full bg-stone-200 dark:bg-stone-700 -mt-1 mb-1" />
@@ -94,25 +94,25 @@ export const RecordingUI: FC = () => {
                 <div className="relative">
                   {/* Expanding glow ring */}
                   <div
-                    className="absolute inset-0 rounded-full bg-terracotta/10 dark:bg-terracotta-light/10"
+                    className="absolute inset-0 rounded-full bg-primary-500/10 dark:bg-primary-400/10"
                     style={{ animation: 'success-glow 0.8s ease-out forwards' }}
                   />
                   {/* Main circle */}
                   <div
-                    className="w-20 h-20 rounded-full bg-gradient-to-br from-terracotta/15 to-terracotta-light/10 dark:from-terracotta-light/12 dark:to-terracotta/8 border-2 border-terracotta/25 dark:border-terracotta-light/20 flex items-center justify-center"
+                    className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500/15 to-primary-400/10 dark:from-primary-400/12 dark:to-primary-500/8 border-2 border-primary-500/25 dark:border-primary-400/20 flex items-center justify-center"
                     style={{ animation: 'scale-in 0.3s ease-out both' }}
                   >
                     <Check
                       size={34}
                       strokeWidth={2.5}
-                      className="text-terracotta dark:text-terracotta-light"
+                      className="text-primary-500 dark:text-primary-400"
                       style={{ animation: 'check-pop 0.4s ease-out 0.15s both' }}
                     />
                   </div>
                 </div>
 
                 <p
-                  className="text-xs font-heading font-semibold tracking-wider uppercase text-terracotta dark:text-terracotta-light"
+                  className="text-xs font-sans font-semibold tracking-wider uppercase text-primary-500 dark:text-primary-400"
                   style={{ animation: 'fade-in 0.3s ease-out 0.25s both' }}
                 >
                   Recording saved!
@@ -127,7 +127,7 @@ export const RecordingUI: FC = () => {
                   <div className="absolute inset-0 rounded-full border-[3px] border-stone-200/30 dark:border-stone-700/30" />
                   {/* Spinning ring */}
                   <div
-                    className="absolute inset-0 rounded-full border-[3px] border-terracotta dark:border-terracotta-light animate-spin"
+                    className="absolute inset-0 rounded-full border-[3px] border-primary-500 dark:border-primary-400 animate-spin"
                     style={{
                       borderRightColor: 'transparent',
                       borderBottomColor: 'transparent',
@@ -137,7 +137,7 @@ export const RecordingUI: FC = () => {
                   />
                   {/* Subtle inner pulse */}
                   <div
-                    className="absolute inset-2 rounded-full bg-terracotta/5 dark:bg-terracotta-light/5 animate-pulse-record"
+                    className="absolute inset-2 rounded-full bg-primary-500/5 dark:bg-primary-400/5 animate-pulse-record"
                   />
                   {/* Upload icon */}
                   <div
@@ -150,7 +150,7 @@ export const RecordingUI: FC = () => {
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      className="text-terracotta dark:text-terracotta-light"
+                      className="text-primary-500 dark:text-primary-400"
                       strokeWidth="1.8"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -167,7 +167,7 @@ export const RecordingUI: FC = () => {
                   {VISUALIZER_WEIGHTS.map((_, i) => (
                     <div
                       key={i}
-                      className="w-[3px] rounded-full bg-gradient-to-t from-terracotta/50 to-terracotta-light/50 dark:from-terracotta-light/50 dark:to-gold/50"
+                      className="w-[3px] rounded-full bg-gradient-to-t from-primary-500/50 to-primary-400/50 dark:from-primary-400/50 dark:to-primary-300/50"
                       style={{
                         height: '14px',
                         animation: `upload-bar 1.4s ease-in-out ${i * 0.1}s infinite`,
@@ -179,7 +179,7 @@ export const RecordingUI: FC = () => {
                 {/* Progressive text */}
                 <p
                   key={uploadPhase}
-                  className="text-xs font-heading font-medium tracking-wider uppercase text-warm-text-secondary dark:text-dark-text-secondary"
+                  className="text-xs font-sans font-medium tracking-wider uppercase text-text-secondary dark:text-neutral-400"
                   style={{ animation: 'fade-in 0.4s ease-out' }}
                 >
                   {UPLOAD_MESSAGES[uploadPhase]}
@@ -187,7 +187,7 @@ export const RecordingUI: FC = () => {
 
                 {/* Dimmed timer */}
                 <p
-                  className="text-5xl font-heading font-bold text-warm-text/20 dark:text-dark-text/20 tabular-nums tracking-tight"
+                  className="text-5xl font-sans font-bold text-text-primary/20 dark:text-gray-100/20 tabular-nums tracking-tight"
                   data-testid="recording-timer"
                 >
                   {formatDuration(state.duration)}
@@ -202,7 +202,7 @@ export const RecordingUI: FC = () => {
                   {isRecording && (
                     <>
                       <div
-                        className="absolute inset-0 rounded-full bg-terracotta/10 dark:bg-terracotta-light/10"
+                        className="absolute inset-0 rounded-full bg-primary-500/10 dark:bg-primary-400/10"
                         style={{
                           transform: `scale(${1.6 + state.audioLevel * 0.8})`,
                           opacity: 0.15 + state.audioLevel * 0.3,
@@ -210,7 +210,7 @@ export const RecordingUI: FC = () => {
                         }}
                       />
                       <div
-                        className="absolute inset-0 rounded-full border-2 border-terracotta/30 dark:border-terracotta-light/30 animate-recording-ring"
+                        className="absolute inset-0 rounded-full border-2 border-primary-500/30 dark:border-primary-400/30 animate-recording-ring"
                         style={{
                           transform: `scale(${1.3 + state.audioLevel * 0.4})`,
                           transition: 'transform 0.15s ease-out',
@@ -223,21 +223,21 @@ export const RecordingUI: FC = () => {
                   <div
                     className={`w-20 h-20 rounded-full flex items-center justify-center relative ${
                       isPaused
-                        ? 'bg-gold/12 dark:bg-gold/8 border-2 border-gold/25 dark:border-gold/20'
-                        : 'bg-gradient-to-br from-terracotta/15 to-terracotta-light/10 dark:from-terracotta-light/12 dark:to-terracotta/8 border-2 border-terracotta/20 dark:border-terracotta-light/15'
+                        ? 'bg-warning/12 dark:bg-warning/8 border-2 border-warning/25 dark:border-warning/20'
+                        : 'bg-gradient-to-br from-primary-500/15 to-primary-400/10 dark:from-primary-400/12 dark:to-primary-500/8 border-2 border-primary-500/20 dark:border-primary-400/15'
                     }`}
                   >
                     <Mic
                       size={34}
                       strokeWidth={1.8}
-                      className={isPaused ? 'text-gold' : 'text-terracotta dark:text-terracotta-light'}
+                      className={isPaused ? 'text-warning' : 'text-primary-500 dark:text-primary-400'}
                       aria-hidden="true"
                     />
 
                     {/* Live dot */}
                     {isRecording && (
-                      <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-terracotta dark:bg-terracotta-light shadow-sm shadow-terracotta/40">
-                        <div className="w-full h-full rounded-full bg-terracotta dark:bg-terracotta-light animate-pulse-record" />
+                      <div className="absolute top-1 right-1 w-3 h-3 rounded-full bg-primary-500 dark:bg-primary-400 shadow-sm shadow-primary-500/40">
+                        <div className="w-full h-full rounded-full bg-primary-500 dark:bg-primary-400 animate-pulse-record" />
                       </div>
                     )}
                   </div>
@@ -251,7 +251,7 @@ export const RecordingUI: FC = () => {
                       return (
                         <div
                           key={i}
-                          className="w-[3px] rounded-full bg-gradient-to-t from-terracotta to-terracotta-light dark:from-terracotta-light dark:to-gold"
+                          className="w-[3px] rounded-full bg-gradient-to-t from-primary-500 to-primary-400 dark:from-primary-400 dark:to-primary-300"
                           style={{
                             height: `${Math.max(3, level * 20)}px`,
                             opacity: isPaused ? 0.25 : 0.4 + level * 0.6,
@@ -264,7 +264,7 @@ export const RecordingUI: FC = () => {
                 )}
 
                 {/* Status label */}
-                <p className="text-xs font-heading font-medium tracking-wider uppercase text-warm-text-secondary dark:text-dark-text-secondary">
+                <p className="text-xs font-sans font-medium tracking-wider uppercase text-text-secondary dark:text-neutral-400">
                   {isPaused
                     ? t('recording.paused')
                     : t('recording.recording')}
@@ -272,7 +272,7 @@ export const RecordingUI: FC = () => {
 
                 {/* Timer */}
                 <p
-                  className="text-5xl font-heading font-bold text-warm-text dark:text-dark-text tabular-nums tracking-tight"
+                  className="text-5xl font-sans font-bold text-text-primary dark:text-gray-100 tabular-nums tracking-tight"
                   data-testid="recording-timer"
                 >
                   {formatDuration(state.duration)}
@@ -284,7 +284,7 @@ export const RecordingUI: FC = () => {
           {/* No audio warning */}
           {state.showNoAudioWarning && (
             <div
-              className="w-full bg-terracotta/8 dark:bg-terracotta-light/8 text-terracotta dark:text-terracotta-light text-sm rounded-xl p-3 border border-terracotta/15 dark:border-terracotta-light/15 flex items-center justify-center gap-2"
+              className="w-full bg-primary-500/8 dark:bg-primary-400/8 text-primary-500 dark:text-primary-400 text-sm rounded-xl p-3 border border-primary-500/15 dark:border-primary-400/15 flex items-center justify-center gap-2"
               data-testid="no-audio-warning"
             >
               <AlertTriangle size={16} className="flex-shrink-0" />
@@ -295,7 +295,7 @@ export const RecordingUI: FC = () => {
           {/* Phone call warning */}
           {state.showPhoneCallWarning && (
             <div
-              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 border border-gold/15 flex items-center justify-center gap-2"
+              className="w-full bg-warning/8 text-warning text-sm rounded-xl p-3 border border-warning/15 flex items-center justify-center gap-2"
               data-testid="phone-call-warning"
             >
               <PhoneCall size={16} className="flex-shrink-0" />
@@ -306,7 +306,7 @@ export const RecordingUI: FC = () => {
           {/* Low storage warning */}
           {state.showLowStorageWarning && (
             <div
-              className="w-full bg-gold/8 text-gold text-sm rounded-xl p-3 border border-gold/15 flex items-center justify-center gap-2"
+              className="w-full bg-warning/8 text-warning text-sm rounded-xl p-3 border border-warning/15 flex items-center justify-center gap-2"
               data-testid="low-storage-warning"
             >
               <AlertTriangle size={16} className="flex-shrink-0" />
@@ -325,12 +325,12 @@ export const RecordingUI: FC = () => {
                 data-testid="cancel-recording-button"
                 className="recording-control-btn"
               >
-                <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center border border-stone-200 dark:border-stone-700/50 active:scale-95 transition-transform">
-                  <X size={18} strokeWidth={2} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-gray-800 flex items-center justify-center border border-stone-200 dark:border-stone-700/50 active:scale-95 transition-transform">
+                  <X size={18} strokeWidth={2} className="text-text-secondary dark:text-neutral-400" />
                 </div>
               </IonButton>
 
-              {/* Stop */}
+              {/* Stop — with Liquid Glass container */}
               <IonButton
                 fill="clear"
                 onClick={handleStop}
@@ -338,8 +338,10 @@ export const RecordingUI: FC = () => {
                 data-testid="stop-recording-button"
                 className="recording-control-btn"
               >
-                <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-terracotta to-terracotta-light dark:from-terracotta-light dark:to-terracotta flex items-center justify-center shadow-lg shadow-terracotta/30 dark:shadow-terracotta-light/20 active:scale-95 transition-transform">
-                  <Square size={22} fill="white" strokeWidth={0} className="text-white" />
+                <div className="liquid-glass p-4 rounded-full" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(24px) saturate(180%)', border: isRecording ? '1px solid rgba(239,68,68,0.40)' : '1px solid rgba(255,255,255,0.30)', boxShadow: '0 8px 32px rgba(67,78,245,0.12), inset 0 1px 0 rgba(255,255,255,0.50)' }}>
+                  <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform ${isRecording ? 'bg-error' : 'bg-primary-500'}`}>
+                    <Square size={22} fill="white" strokeWidth={0} className="text-white" />
+                  </div>
                 </div>
               </IonButton>
 
@@ -357,13 +359,13 @@ export const RecordingUI: FC = () => {
               >
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 active:scale-95 transition-transform ${
                   isPaused
-                    ? 'bg-gold/10 border-gold/40 dark:border-gold/30'
-                    : 'bg-white dark:bg-dark-surface-elevated border-stone-200 dark:border-stone-600'
+                    ? 'bg-warning/10 border-warning/40 dark:border-warning/30'
+                    : 'bg-white dark:bg-gray-800 border-stone-200 dark:border-stone-600'
                 }`}>
                   {isPaused ? (
-                    <Play size={18} strokeWidth={2.5} className="text-gold ml-0.5" />
+                    <Play size={18} strokeWidth={2.5} className="text-warning ml-0.5" />
                   ) : (
-                    <Pause size={18} strokeWidth={2.5} className="text-warm-text dark:text-dark-text" />
+                    <Pause size={18} strokeWidth={2.5} className="text-text-primary dark:text-gray-100" />
                   )}
                 </div>
               </IonButton>

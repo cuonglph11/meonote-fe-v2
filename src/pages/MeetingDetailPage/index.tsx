@@ -246,23 +246,23 @@ export const MeetingDetailPage: FC = () => {
         {/* Retry banner */}
         {needsRetry && (
           <div
-            className="flex items-center justify-between bg-gold/10 dark:bg-gold/5 border border-gold/30 dark:border-gold/20 rounded-xl p-3 mb-4 cursor-pointer"
+            className="flex items-center justify-between bg-warning/10 dark:bg-warning/5 border border-warning/30 dark:border-warning/20 rounded-xl p-3 mb-4 cursor-pointer"
             onClick={handleRetryUpload}
             data-testid="retry-banner"
           >
-            <p className="text-gold dark:text-gold text-sm font-medium">
+            <p className="text-warning dark:text-warning text-sm font-medium">
               {t('detail.retryBanner')}
             </p>
             <RefreshCw
               size={18}
-              className="text-gold flex-shrink-0"
+              className="text-warning flex-shrink-0"
               aria-hidden="true"
             />
           </div>
         )}
 
         {/* Note metadata */}
-        <div className="flex items-center gap-2 mb-3 text-[11px] text-warm-text-secondary dark:text-dark-text-secondary">
+        <div className="flex items-center gap-2 mb-3 text-[11px] text-text-secondary dark:text-neutral-400">
           <span>
             {new Date(note.createdAt).toLocaleDateString(undefined, {
               weekday: 'short',
@@ -271,7 +271,7 @@ export const MeetingDetailPage: FC = () => {
               year: 'numeric',
             })}
           </span>
-          <span className="w-[3px] h-[3px] rounded-full bg-warm-text-secondary/30 dark:bg-dark-text-secondary/30" />
+          <span className="w-[3px] h-[3px] rounded-full bg-text-secondary/30 dark:bg-neutral-400/30" />
           <span className="font-mono">{formatDuration(note.duration)}</span>
         </div>
 
@@ -302,9 +302,9 @@ export const MeetingDetailPage: FC = () => {
         {activeTab === 'summary' && (
           <div className="mt-4 animate-fade-in" data-testid="summary-content">
             {isEditingSummary ? (
-              <div className="bg-white dark:bg-dark-surface rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-2 border-b border-stone-100 dark:border-stone-700/50 bg-stone-50/50 dark:bg-dark-surface-elevated/50">
-                  <span className="text-xs font-heading font-medium text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">Markdown</span>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-stone-200 dark:border-stone-700/50 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-stone-100 dark:border-stone-700/50 bg-stone-50/50 dark:bg-gray-800/50">
+                  <span className="text-xs font-sans font-medium text-text-secondary dark:text-neutral-400 uppercase tracking-wider">Markdown</span>
                   <div className="flex gap-1">
                     <IonButton fill="clear" size="small" onClick={() => setIsEditingSummary(false)}>
                       {t('common.cancel')}
@@ -313,7 +313,7 @@ export const MeetingDetailPage: FC = () => {
                   </div>
                 </div>
                 <textarea
-                  className="w-full p-4 bg-transparent text-warm-text dark:text-dark-text resize-y outline-none font-mono text-sm leading-relaxed min-h-[40vh] md:min-h-[60vh] max-h-[80vh]"
+                  className="w-full p-4 bg-transparent text-text-primary dark:text-gray-100 resize-y outline-none font-mono text-sm leading-relaxed min-h-[40vh] md:min-h-[60vh] max-h-[80vh]"
                   value={editSummaryValue}
                   onChange={(e) => setEditSummaryValue(e.target.value)}
                   autoFocus
@@ -326,7 +326,7 @@ export const MeetingDetailPage: FC = () => {
                 <div className="h-4 w-5/6 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
                 <div className="h-4 w-4/6 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
                 <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-700 animate-pulse" />
-                <p className="text-xs text-warm-text-secondary dark:text-dark-text-secondary mt-4">
+                <p className="text-xs text-text-secondary dark:text-neutral-400 mt-4">
                   {t('regenerate.regenerating')}
                 </p>
               </div>
@@ -338,7 +338,7 @@ export const MeetingDetailPage: FC = () => {
                     data-testid="summary-text"
                   />
                 ) : (
-                  <p className="text-warm-text-secondary dark:text-dark-text-secondary italic" data-testid="no-summary">
+                  <p className="text-text-secondary dark:text-neutral-400 italic" data-testid="no-summary">
                     {t('detail.noSummary')}
                   </p>
                 )}
@@ -370,7 +370,7 @@ export const MeetingDetailPage: FC = () => {
               />
             ) : (
               <p
-                className="text-warm-text-secondary dark:text-dark-text-secondary italic"
+                className="text-text-secondary dark:text-neutral-400 italic"
                 data-testid="no-transcription"
               >
                 {t('detail.noTranscription')}

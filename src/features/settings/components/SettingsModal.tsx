@@ -92,8 +92,8 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <IonTitle>{t('settings.title')}</IonTitle>
             <IonButtons slot="end">
               <IonButton onClick={onClose} aria-label={t('common.close')}>
-                <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center">
-                  <X size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-gray-800 flex items-center justify-center">
+                  <X size={16} className="text-text-secondary dark:text-neutral-400" />
                 </div>
               </IonButton>
             </IonButtons>
@@ -104,15 +104,15 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <div className="animate-fade-in">
             {/* Preferences Section */}
             <div className="mb-6">
-              <h3 className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+              <h3 className="text-xs font-sans font-semibold text-text-secondary dark:text-neutral-400 uppercase tracking-wider px-2 mb-2">
                 {t('settings.title')}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
                 <IonList>
                   <IonItem data-testid="settings-language-item">
                     <div className="flex items-center gap-3 w-full py-1">
-                      <div className="w-8 h-8 rounded-xl bg-terracotta/10 dark:bg-terracotta-light/10 flex items-center justify-center flex-shrink-0">
-                        <Globe size={16} className="text-terracotta dark:text-terracotta-light" />
+                      <div className="w-8 h-8 rounded-xl bg-primary-500/10 dark:bg-primary-400/10 flex items-center justify-center flex-shrink-0">
+                        <Globe size={16} className="text-primary-500 dark:text-primary-400" />
                       </div>
                       <IonLabel className="font-medium">{t('settings.language')}</IonLabel>
                       <IonSelect
@@ -128,8 +128,8 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <IonItem data-testid="settings-theme-item">
                     <div className="flex items-center gap-3 w-full py-1">
-                      <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                        <Moon size={16} className="text-gold" />
+                      <div className="w-8 h-8 rounded-xl bg-primary-100/10 flex items-center justify-center flex-shrink-0">
+                        <Moon size={16} className="text-primary-500" />
                       </div>
                       <IonLabel className="font-medium">{t('settings.theme')}</IonLabel>
                       <IonSelect
@@ -149,10 +149,10 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
             {/* Legal Section */}
             <div className="mb-6">
-              <h3 className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+              <h3 className="text-xs font-sans font-semibold text-text-secondary dark:text-neutral-400 uppercase tracking-wider px-2 mb-2">
                 {t('settings.legal')}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
                 <IonList>
                   <IonItem
                     button
@@ -160,8 +160,8 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     data-testid="settings-terms-item"
                   >
                     <div className="flex items-center gap-3 w-full py-1">
-                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
-                        <FileText size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <FileText size={16} className="text-text-secondary dark:text-neutral-400" />
                       </div>
                       <IonLabel className="font-medium">{t('settings.termsOfService')}</IonLabel>
                       <ChevronRight size={16} className="text-stone-300 dark:text-stone-600 flex-shrink-0" />
@@ -174,8 +174,8 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     data-testid="settings-privacy-item"
                   >
                     <div className="flex items-center gap-3 w-full py-1">
-                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
-                        <Shield size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <Shield size={16} className="text-text-secondary dark:text-neutral-400" />
                       </div>
                       <IonLabel className="font-medium">{t('settings.privacyPolicy')}</IonLabel>
                       <ChevronRight size={16} className="text-stone-300 dark:text-stone-600 flex-shrink-0" />
@@ -187,20 +187,20 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
             {/* About Section */}
             <div className="mb-6">
-              <h3 className="text-xs font-heading font-semibold text-warm-text-secondary dark:text-dark-text-secondary uppercase tracking-wider px-2 mb-2">
+              <h3 className="text-xs font-sans font-semibold text-text-secondary dark:text-neutral-400 uppercase tracking-wider px-2 mb-2">
                 {t('settings.about')}
               </h3>
-              <div className="bg-white dark:bg-dark-surface rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-stone-100 dark:border-stone-800/50">
                 <IonList>
                   <IonItem data-testid="settings-userid-item">
                     <div className="flex items-center gap-3 w-full py-1">
-                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
-                        <User size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <User size={16} className="text-text-secondary dark:text-neutral-400" />
                       </div>
                       <IonLabel>
                         <p className="font-medium">{t('settings.userId')}</p>
                         <p
-                          className="text-xs text-warm-text-secondary dark:text-dark-text-secondary font-mono mt-0.5 opacity-70"
+                          className="text-xs text-text-secondary dark:text-neutral-400 font-mono mt-0.5 opacity-70"
                           data-testid="settings-userid-value"
                         >
                           {truncatedToken}
@@ -211,13 +211,13 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                   <IonItem data-testid="settings-version-item">
                     <div className="flex items-center gap-3 w-full py-1">
-                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-dark-surface-elevated flex items-center justify-center flex-shrink-0">
-                        <Info size={16} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+                      <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <Info size={16} className="text-text-secondary dark:text-neutral-400" />
                       </div>
                       <IonLabel>
                         <p className="font-medium">{t('settings.version')}</p>
                         <p
-                          className="text-xs text-warm-text-secondary dark:text-dark-text-secondary mt-0.5 opacity-70"
+                          className="text-xs text-text-secondary dark:text-neutral-400 mt-0.5 opacity-70"
                           data-testid="settings-version-value"
                         >
                           {APP_VERSION}
@@ -237,7 +237,7 @@ export const SettingsModal: FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     <Trash2 size={16} className="text-red-500 dark:text-red-400" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-heading font-semibold text-red-700 dark:text-red-300">
+                    <h3 className="text-sm font-sans font-semibold text-red-700 dark:text-red-300">
                       {t('settings.dangerZone')}
                     </h3>
                     <p className="text-xs text-red-500/70 dark:text-red-400/60 mt-0.5">

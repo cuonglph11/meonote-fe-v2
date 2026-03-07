@@ -49,25 +49,25 @@ export const OnboardingPage: FC = () => {
           {/* Hero — logo with decorative glow */}
           <div className="relative mb-8 animate-fade-in">
             {/* Background glow */}
-            <div className="absolute inset-0 rounded-full bg-terracotta/15 dark:bg-terracotta-light/10 blur-3xl scale-[2.5]" />
-            <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-gold/20 dark:bg-gold/10 blur-2xl" />
-            <div className="absolute -bottom-4 -left-8 w-20 h-20 rounded-full bg-terracotta-light/15 dark:bg-terracotta-light/8 blur-2xl" />
+            <div className="absolute inset-0 rounded-full bg-primary-500/15 dark:bg-primary-400/10 blur-3xl scale-[2.5]" />
+            <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-primary-200/20 dark:bg-primary-100/10 blur-2xl" />
+            <div className="absolute -bottom-4 -left-8 w-20 h-20 rounded-full bg-primary-400/15 dark:bg-primary-400/8 blur-2xl" />
 
             {/* Logo */}
-            <div className="relative w-28 h-28 rounded-[32px] overflow-hidden shadow-xl shadow-terracotta/20 dark:shadow-terracotta-light/10 ring-1 ring-white/20 dark:ring-white/5 animate-float">
+            <div className="relative w-28 h-28 rounded-[32px] overflow-hidden shadow-xl shadow-primary-500/20 dark:shadow-primary-400/10 ring-1 ring-white/20 dark:ring-white/5 animate-float">
               <img src="/logo_meonote.png" alt="MeoNote" className="w-full h-full object-cover" />
             </div>
 
             {/* Decorative dot */}
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gold rounded-full shadow-md shadow-gold/40 animate-pulse-record" />
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 rounded-full shadow-md shadow-primary-500/40 animate-pulse-record" />
           </div>
 
           {/* Title + subtitle */}
           <div className="text-center mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <h1 className="text-3xl font-heading font-bold tracking-tight text-warm-text dark:text-dark-text">
+            <h1 className="text-3xl font-sans font-bold tracking-tight text-text-primary dark:text-gray-100">
               {t('onboarding.title')}
             </h1>
-            <p className="text-warm-text-secondary dark:text-dark-text-secondary mt-2 text-[0.9375rem] leading-relaxed max-w-[280px] mx-auto">
+            <p className="text-text-secondary dark:text-neutral-400 mt-2 text-[0.9375rem] leading-relaxed max-w-[280px] mx-auto">
               {t('onboarding.subtitle')}
             </p>
           </div>
@@ -76,14 +76,14 @@ export const OnboardingPage: FC = () => {
           <div className="w-full max-w-sm space-y-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
 
             {/* Language card */}
-            <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
               <IonItem lines="none">
                 <div className="flex items-center gap-3 w-full py-1">
-                  <div className="w-9 h-9 rounded-xl bg-terracotta/10 dark:bg-terracotta-light/10 flex items-center justify-center flex-shrink-0">
-                    <Globe size={17} className="text-terracotta dark:text-terracotta-light" />
+                  <div className="w-9 h-9 rounded-xl bg-primary-500/10 dark:bg-primary-400/10 flex items-center justify-center flex-shrink-0">
+                    <Globe size={17} className="text-primary-500 dark:text-primary-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-heading font-semibold text-warm-text dark:text-dark-text">
+                    <p className="text-[13px] font-sans font-semibold text-text-primary dark:text-gray-100">
                       {t('onboarding.selectLanguage')}
                     </p>
                   </div>
@@ -101,14 +101,14 @@ export const OnboardingPage: FC = () => {
             </div>
 
             {/* Theme card */}
-            <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
               <IonItem lines="none">
                 <div className="flex items-center gap-3 w-full py-1">
-                  <div className="w-9 h-9 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                    <Moon size={17} className="text-gold" />
+                  <div className="w-9 h-9 rounded-xl bg-primary-100/10 flex items-center justify-center flex-shrink-0">
+                    <Moon size={17} className="text-primary-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-heading font-semibold text-warm-text dark:text-dark-text">
+                    <p className="text-[13px] font-sans font-semibold text-text-primary dark:text-gray-100">
                       {t('onboarding.selectTheme')}
                     </p>
                   </div>
@@ -127,7 +127,7 @@ export const OnboardingPage: FC = () => {
             </div>
 
             {/* Consent card */}
-            <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800/50 overflow-hidden">
               <IonItem lines="none">
                 <div className="flex items-center gap-3 w-full py-1.5">
                   <IonCheckbox
@@ -135,7 +135,7 @@ export const OnboardingPage: FC = () => {
                     onIonChange={(e) => setConsentChecked(e.detail.checked)}
                     data-testid="consent-checkbox"
                   />
-                  <IonLabel className="text-[13px] text-warm-text-secondary dark:text-dark-text-secondary leading-snug">
+                  <IonLabel className="text-[13px] text-text-secondary dark:text-neutral-400 leading-snug">
                     {t('onboarding.consent')}
                   </IonLabel>
                 </div>
@@ -157,7 +157,7 @@ export const OnboardingPage: FC = () => {
           </div>
 
           {/* Footer — subtle brand mark */}
-          <p className="text-[10px] text-warm-text-secondary/40 dark:text-dark-text-secondary/30 mt-8 font-mono tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <p className="text-[10px] text-text-secondary/40 dark:text-neutral-400/30 mt-8 font-mono tracking-widest uppercase animate-fade-in" style={{ animationDelay: '0.4s' }}>
             MeoNote v{APP_VERSION}
           </p>
         </div>

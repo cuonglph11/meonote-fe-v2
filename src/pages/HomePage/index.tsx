@@ -189,7 +189,7 @@ export const HomePage: FC = () => {
   };
 
   const renderNoteItem = (note: Note) => {
-    const statusColor = note.status === 'failed' ? 'bg-terracotta dark:bg-terracotta-light' : note.status === 'pending' ? 'bg-gold' : 'bg-terracotta/30 dark:bg-terracotta-light/30';
+    const statusColor = note.status === 'failed' ? 'bg-error dark:bg-error' : note.status === 'pending' ? 'bg-warning' : 'bg-primary-500/30 dark:bg-primary-400/30';
 
     return (
       <IonItemSliding key={note.id} data-testid={`note-item-${note.id}`}>
@@ -201,8 +201,8 @@ export const HomePage: FC = () => {
         >
           <div className={`w-[3px] self-stretch rounded-full mr-3.5 flex-shrink-0 ${statusColor}`} />
           <IonLabel>
-            <h2 className="font-heading font-medium text-[0.9375rem] leading-snug text-warm-text dark:text-dark-text">{getDisplayTitle(note)}</h2>
-            <p className="text-xs text-warm-text-secondary dark:text-dark-text-secondary mt-0.5">
+            <h2 className="font-sans font-medium text-[0.9375rem] leading-snug text-text-primary dark:text-dark-text">{getDisplayTitle(note)}</h2>
+            <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
               {new Date(note.createdAt).toLocaleTimeString(settings.language === 'vi' ? 'vi-VN' : 'en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -253,13 +253,13 @@ export const HomePage: FC = () => {
     if (sectionNotes.length === 0) return null;
     return (
       <div key={title} data-testid={`section-${title.toLowerCase()}`}>
-        <div className="sticky top-0 z-10 px-4 py-2 bg-warm-ivory/95 dark:bg-dark-bg/95 backdrop-blur-md">
+        <div className="sticky top-0 z-10 px-4 py-2 bg-background/95 dark:bg-dark-bg/95 backdrop-blur-md">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-terracotta dark:bg-terracotta-light opacity-70" />
-            <p className="text-[11px] font-heading font-semibold uppercase tracking-widest text-warm-text/50 dark:text-dark-text/50">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary-500 dark:bg-primary-400 opacity-70" />
+            <p className="text-[11px] font-sans font-semibold uppercase tracking-widest text-text-primary/50 dark:text-dark-text/50">
               {title}
             </p>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-stone-100 dark:bg-dark-surface-elevated text-warm-text/40 dark:text-dark-text/40">
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-stone-100 dark:bg-dark-surface-elevated text-text-primary/40 dark:text-dark-text/40">
               {sectionNotes.length}
             </span>
           </div>
@@ -280,10 +280,10 @@ export const HomePage: FC = () => {
                 <img src="/logo_meonote.png" alt="MeoNote" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col">
-                <h1 className="text-lg font-heading font-bold tracking-tight text-warm-text dark:text-dark-text leading-none">
+                <h1 className="text-lg font-sans font-bold tracking-tight text-text-primary dark:text-dark-text leading-none">
                   {t('home.title')}
                 </h1>
-                <p className="text-[11px] font-body text-warm-text-secondary dark:text-dark-text-secondary mt-0.5 tracking-wide">
+                <p className="text-[11px] font-sans text-text-secondary dark:text-dark-text-secondary mt-0.5 tracking-wide">
                   {new Date().toLocaleDateString(settings.language === 'vi' ? 'vi-VN' : 'en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -301,8 +301,8 @@ export const HomePage: FC = () => {
               data-testid="settings-button"
               className="home-settings-btn"
             >
-              <div className="w-9 h-9 rounded-xl bg-warm-surface-elevated dark:bg-dark-surface-elevated flex items-center justify-center ring-1 ring-stone-200/80 dark:ring-stone-700/50 active:scale-95 transition-transform">
-                <Settings size={17} strokeWidth={1.8} className="text-warm-text-secondary dark:text-dark-text-secondary" />
+              <div className="w-9 h-9 rounded-xl bg-surface-alt dark:bg-dark-surface-elevated flex items-center justify-center ring-1 ring-stone-200/80 dark:ring-stone-700/50 active:scale-95 transition-transform">
+                <Settings size={17} strokeWidth={1.8} className="text-text-secondary dark:text-dark-text-secondary" />
               </div>
             </IonButton>
           </div>
@@ -334,14 +334,14 @@ export const HomePage: FC = () => {
           <div className="px-4 pb-2" data-testid="pending-notes-section">
             {pendingNotes.map((pending) => (
               <IonItem key={pending.id} className="pending-note-item" data-testid={`pending-note-${pending.id}`}>
-                <div className="w-[3px] self-stretch rounded-full mr-3.5 flex-shrink-0 bg-gold" />
+                <div className="w-[3px] self-stretch rounded-full mr-3.5 flex-shrink-0 bg-warning" />
                 <IonLabel>
-                  <h2 className="font-heading font-medium text-[0.9375rem] text-warm-text dark:text-dark-text">{pending.title}</h2>
-                  <span className="text-[11px] text-warm-text-secondary dark:text-dark-text-secondary font-mono">{formatDuration(pending.duration)}</span>
+                  <h2 className="font-sans font-medium text-[0.9375rem] text-text-primary dark:text-dark-text">{pending.title}</h2>
+                  <span className="text-[11px] text-text-secondary dark:text-dark-text-secondary font-mono">{formatDuration(pending.duration)}</span>
                 </IonLabel>
                 <div className="flex items-center gap-2">
                   {pending.uploading && (
-                    <div className="w-3.5 h-3.5 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+                    <div className="w-3.5 h-3.5 border-2 border-warning border-t-transparent rounded-full animate-spin" />
                   )}
                   <IonBadge color="warning">
                     {pending.uploading ? t('home.uploading') : t('home.pending')}
@@ -358,7 +358,7 @@ export const HomePage: FC = () => {
             className="flex flex-col items-center justify-center py-12 px-4 text-center"
             data-testid="error-state"
           >
-            <p className="text-warm-text-secondary dark:text-dark-text-secondary mb-4">{t('home.loadError')}</p>
+            <p className="text-text-secondary dark:text-dark-text-secondary mb-4">{t('home.loadError')}</p>
             <IonButton onClick={retryNoteLoad} fill="outline" data-testid="retry-load-button">
               {t('home.retryLoad')}
             </IonButton>
@@ -369,7 +369,7 @@ export const HomePage: FC = () => {
         {loading && notes.length === 0 && (
           <div className="px-4 py-4 space-y-3" data-testid="loading-state">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-3.5 px-4 py-4 bg-warm-surface dark:bg-dark-surface rounded-xl animate-pulse">
+              <div key={i} className="flex items-center gap-3.5 px-4 py-4 bg-surface dark:bg-dark-surface rounded-xl animate-pulse">
                 <div className="w-[3px] h-10 rounded-full bg-stone-200 dark:bg-stone-700" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-700" />
@@ -386,10 +386,10 @@ export const HomePage: FC = () => {
             className="flex flex-col items-center justify-center py-16 px-4 text-center"
             data-testid="no-search-results"
           >
-            <p className="text-xl font-heading font-medium text-warm-text dark:text-dark-text">
+            <p className="text-xl font-sans font-medium text-text-primary dark:text-dark-text">
               {t('home.noSearchResults')}
             </p>
-            <p className="text-warm-text-secondary dark:text-dark-text-secondary mt-2">
+            <p className="text-text-secondary dark:text-dark-text-secondary mt-2">
               {t('home.noSearchResultsHint')}
             </p>
           </div>
@@ -401,15 +401,15 @@ export const HomePage: FC = () => {
             data-testid="empty-state"
           >
             <div className="relative mb-8">
-              <div className="w-28 h-28 rounded-[32px] overflow-hidden animate-float shadow-lg shadow-terracotta/10">
+              <div className="w-28 h-28 rounded-[32px] overflow-hidden animate-float shadow-lg shadow-primary-500/10">
                 <img src="/logo_meonote.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
               </div>
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-gold rounded-full animate-pulse-record" />
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-warning rounded-full animate-pulse-record" />
             </div>
-            <p className="text-xl font-heading font-semibold text-warm-text dark:text-dark-text">
+            <p className="text-xl font-sans font-semibold text-text-primary dark:text-dark-text">
               {t('home.noNotes')}
             </p>
-            <p className="text-sm text-warm-text-secondary dark:text-dark-text-secondary mt-2 max-w-[240px] leading-relaxed">{t('home.noNotesHint')}</p>
+            <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-2 max-w-[240px] leading-relaxed">{t('home.noNotesHint')}</p>
           </div>
         )}
 

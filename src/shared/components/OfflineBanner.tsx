@@ -11,7 +11,7 @@ export const OfflineBanner: FC = () => {
 
   return (
     <div
-      className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-gold text-white px-4 py-2 text-sm font-medium animate-slide-up"
+      className="flex items-center gap-2 bg-gradient-to-r from-warning to-amber-500 text-white px-4 py-2 text-sm font-medium animate-slide-up"
       role="alert"
       data-testid="offline-banner"
     >
